@@ -21,7 +21,7 @@ interface ProjectState {
   setError: (error: string | null) => void;
   
   // 项目操作
-  initializeProject: (type: 'idea' | 'outline' | 'description', content: string, templateImage?: File) => Promise<void>;
+  initializeProject: (type: 'idea' | 'outline' | 'description' | 'layout', content: string, templateImage?: File) => Promise<void>;
   syncProject: (projectId?: string) => Promise<void>;
   
   // 页面操作
@@ -104,7 +104,9 @@ const debouncedUpdatePage = debounce(
   initializeProject: async (type, content, templateImage) => {
     set({ isGlobalLoading: true, error: null });
     try {
-      const request: any = {};
+      const request: any = {
+        creation_type: type  // 设置创建类型
+      };
       
       if (type === 'idea') {
         request.idea_prompt = content;
@@ -112,6 +114,8 @@ const debouncedUpdatePage = debounce(
         request.outline_text = content;
       } else if (type === 'description') {
         request.description_text = content;
+      } else if (type === 'layout') {
+        request.description_text = content;  // layout 也使用 description_text 字段
       }
       
       // 1. 创建项目
@@ -139,6 +143,17 @@ const debouncedUpdatePage = debounce(
           console.log('[初始化项目] 从描述生成大纲和页面描述完成');
         } catch (error) {
           console.error('[初始化项目] 从描述生成失败:', error);
+          // 继续执行，让用户可以手动操作
+        }
+      }
+      
+      // 4. 如果是 layout 类型，解析用户内容但不修改文字
+      if (type === 'layout') {
+        try {
+          await api.generateFromLayout(projectId, content);
+          console.log('[初始化项目] 直接排版模式解析完成');
+        } catch (error) {
+          console.error('[初始化项目] 直接排版模式解析失败:', error);
           // 继续执行，让用户可以手动操作
         }
       }

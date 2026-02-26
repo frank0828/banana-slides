@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, FileText, FileEdit, ImagePlus, Paperclip, Palette, Lightbulb, Search, Settings } from 'lucide-react';
+import { Sparkles, FileText, FileEdit, ImagePlus, Paperclip, Palette, Lightbulb, Search, Settings, LayoutGrid } from 'lucide-react';
 import { Button, Textarea, Card, useToast, MaterialGeneratorModal, ReferenceFileList, ReferenceFileSelector, FilePreviewModal, ImagePreviewList } from '@/components/shared';
 import { TemplateSelector, getTemplateFile } from '@/components/shared/TemplateSelector';
 import { listUserTemplates, type UserTemplate, uploadReferenceFile, type ReferenceFile, associateFileToProject, triggerFileParse, uploadMaterial, associateMaterialsToProject } from '@/api/endpoints';
 import { useProjectStore } from '@/store/useProjectStore';
 
-type CreationType = 'idea' | 'outline' | 'description';
+type CreationType = 'idea' | 'outline' | 'description' | 'layout';
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -318,8 +318,14 @@ export const Home: React.FC = () => {
     description: {
       icon: <FileEdit size={20} />,
       label: '从描述生成',
-      placeholder: '粘贴你的完整页面描述...\n\n例如：\n第 1 页\n标题：人工智能的诞生\n内容：1950 年，图灵提出"图灵测试"...\n\n第 2 页\n标题：AI 的发展历程\n内容：1950年代：符号主义...\n...',
+      placeholder: '粘贴你的完整页面描述...\n\n例如：\n第 1 页\n标题：人工智能的诞生\n内容：1950 年，图灵提出“图灵测试”...\n\n第 2 页\n标题：AI 的发展历程\n内容：1950年代：符号主义...\n...',
       description: '已有完整描述？AI 将自动解析出大纲并切分为每页描述，直接生成图片',
+    },
+    layout: {
+      icon: <LayoutGrid size={20} />,
+      label: '直接排版',
+      placeholder: '粘贴你的完整页面内容（不会修改文字）...\n\n例如：\n第 1 页\n标题：项目介绍\n- 项目名称：XXX系统\n- 项目目标：提升效率50%\n- 项目周期：3个月\n\n第 2 页\n标题：技术架构\n- 前端：React + TypeScript\n- 后端：Python + Flask\n...',
+      description: '已有完整内容？AI 只负责排版设计，不会修改你的文字内容',
     },
   };
 
@@ -432,8 +438,8 @@ export const Home: React.FC = () => {
       
       if (activeTab === 'idea' || activeTab === 'outline') {
         navigate(`/project/${projectId}/outline`);
-      } else if (activeTab === 'description') {
-        // 从描述生成：直接跳到描述生成页（因为已经自动生成了大纲和描述）
+      } else if (activeTab === 'description' || activeTab === 'layout') {
+        // 从描述生成/直接排版：直接跳到描述生成页（因为已经自动生成了大纲和描述）
         navigate(`/project/${projectId}/detail`);
       }
     } catch (error: any) {

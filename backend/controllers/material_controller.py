@@ -265,6 +265,168 @@ def generate_material_image(project_id):
         return error_response('AI_SERVICE_ERROR', str(e), 503)
 
 
+@material_bp.route('/<project_id>/materials/generate-ad', methods=['POST'])
+def generate_ad_material_image(project_id):
+    """
+    POST /api/projects/{project_id}/materials/generate-ad - Generate an e-commerce ad image as material.
+
+    Request JSON body:
+    {
+        "product": { "name": "...", "selling_points": [...], "price": "...", "target_audience": "..." },
+        "style":   { "visual_style": "...", "scene": "...", "mood": "..." },
+        "layout":  { "aspect_ratio": "1:1", "composition": "...", "text_density": "medium" },
+        "tone":    "..."
+    }
+    Note: project_id can be 'none' to generate global materials.
+    """
+    try:
+        # 支持 'none' 作为特殊值
+        if project_id != 'none':
+            project = Project.query.get(project_id)
+            if not project:
+                return not_found('Project')
+        else:
+            project = None
+            project_id = None
+
+        # 兼容两种提交方式：
+        # 1. JSON body（无商品图片）
+        # 2. multipart/form-data（有商品图片，config 字段为 JSON 字符串）
+        import json as _json
+        ref_file = None
+        extra_files = []
+        style_ref_files = []
+
+        if request.is_json:
+            body = request.get_json() or {}
+            ad_config = body.get('config') or body
+        else:
+            # multipart
+            config_str = request.form.get('config', '{}')
+            try:
+                body = _json.loads(config_str)
+            except Exception:
+                return bad_request("config must be valid JSON")
+            ad_config = body.get('config') or body
+            # 解析商品图片
+            ref_file = request.files.get('ref_image')
+            extra_files = request.files.getlist('extra_images') or []
+            # 解析风格参考图（独立字段，与商品图分开）
+            style_ref_files = request.files.getlist('style_ref_images') or []
+
+        if not isinstance(ad_config, dict):
+            return bad_request("config must be an object")
+
+        product = ad_config.get('product') or {}
+        if not isinstance(product, dict) or not (product.get('name') or '').strip():
+            return bad_request("product.name is required")
+
+        # 解析语言与布局参数
+        language = body.get('language')
+        layout = ad_config.get('layout') or {}
+        aspect_ratio = layout.get('aspect_ratio') or current_app.config.get('DEFAULT_ASPECT_RATIO')
+        resolution = layout.get('resolution') or current_app.config.get('DEFAULT_RESOLUTION')
+
+        # 处理 Task 的 project_id：全局素材使用 'global'
+        task_project_id = project_id if project_id is not None else 'global'
+        if task_project_id != 'global':
+            project = Project.query.get(task_project_id)
+            if not project:
+                return not_found('Project')
+
+        ai_service = AIService()
+        file_service = FileService(current_app.config['UPLOAD_FOLDER'])
+
+        # 创建临时目录（保持与普通素材接口相同的生命周期）
+        temp_dir = Path(tempfile.mkdtemp(dir=current_app.config['UPLOAD_FOLDER']))
+        temp_dir_str = str(temp_dir)
+
+        # 保存商品参考图到临时目录
+        ref_path_str = None
+        additional_ref_list = []
+
+        # 统计商品图数量（用于 prompt 中的位置说明）
+        num_product_images = 0
+        if ref_file and ref_file.filename:
+            ref_filename = secure_filename(ref_file.filename) or 'product_ref.jpg'
+            ref_save = temp_dir / ref_filename
+            ref_file.save(str(ref_save))
+            ref_path_str = str(ref_save)
+            num_product_images += 1
+        for i, ef in enumerate(extra_files or []):
+            if ef and ef.filename:
+                ef_name = secure_filename(ef.filename) or f'extra_{i}.jpg'
+                ef_save = temp_dir / ef_name
+                ef.save(str(ef_save))
+                additional_ref_list.append(str(ef_save))
+                num_product_images += 1
+
+        # 保存风格参考图（追加在商品图之后）
+        has_style_ref_images = False
+        for i, srf in enumerate(style_ref_files or []):
+            if srf and srf.filename:
+                srf_name = secure_filename(srf.filename) or f'style_ref_{i}.jpg'
+                srf_save = temp_dir / srf_name
+                srf.save(str(srf_save))
+                additional_ref_list.append(str(srf_save))
+                has_style_ref_images = True
+
+        # 将图片计数与风格参考标志注入 ad_config，供 prompt 函数使用
+        ad_config = dict(ad_config)
+        ad_config['num_product_images'] = num_product_images
+        ad_config['has_style_ref_images'] = has_style_ref_images
+
+        # 根据结构化配置生成专用 prompt
+        prompt = ai_service.generate_ad_image_prompt(ad_config, language=language)
+
+        additional_ref_list = additional_ref_list if additional_ref_list else None
+
+        # 创建异步任务
+        task = Task(
+            project_id=task_project_id,
+            task_type='GENERATE_MATERIAL',
+            status='PENDING'
+        )
+        task.set_progress({
+            'total': 1,
+            'completed': 0,
+            'failed': 0
+        })
+        db.session.add(task)
+        db.session.commit()
+
+        app = current_app._get_current_object()
+
+        task_manager.submit_task(
+            task.id,
+            generate_material_image_task,
+            task_project_id,
+            prompt,
+            ai_service,
+            file_service,
+            ref_path_str,            # 主商品参考图（可为 None）
+            additional_ref_list,     # 额外参考图（可为 None）
+            aspect_ratio,
+            resolution,
+            temp_dir_str,
+            app
+        )
+
+        return success_response({
+            'task_id': task.id,
+            'status': 'PENDING'
+        }, status_code=202)
+
+    except Exception as e:
+        db.session.rollback()
+        try:
+            if 'temp_dir' in locals() and temp_dir.exists():
+                shutil.rmtree(temp_dir, ignore_errors=True)
+        except Exception:
+            pass
+        return error_response('AI_SERVICE_ERROR', str(e), 503)
+
+
 @material_bp.route('/<project_id>/materials', methods=['GET'])
 def list_materials(project_id):
     """

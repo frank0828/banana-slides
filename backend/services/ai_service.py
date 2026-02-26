@@ -21,7 +21,9 @@ from .prompts import (
     get_description_to_outline_prompt,
     get_description_split_prompt,
     get_outline_refinement_prompt,
-    get_descriptions_refinement_prompt
+    get_descriptions_refinement_prompt,
+    get_layout_pages_prompt,
+    get_ad_image_prompt,
 )
 from .ai_providers import get_text_provider, get_image_provider, TextProvider, ImageProvider
 from config import get_config
@@ -360,6 +362,19 @@ class AIService:
         
         return prompt
     
+    def generate_ad_image_prompt(self, ad_config: Dict, language: str = None) -> str:
+        """
+        生成电商广告图的图片生成 prompt（不影响现有 PPT 流程）
+        
+        Args:
+            ad_config: 包含 product/style/layout/tone 的配置字典
+            language: 语言代码（可选）
+        
+        Returns:
+            图片生成 prompt 字符串
+        """
+        return get_ad_image_prompt(ad_config, language)
+
     def generate_image(self, prompt: str, ref_image_path: Optional[str] = None, 
                       aspect_ratio: str = "16:9", resolution: str = "2K",
                       additional_ref_images: Optional[List[Union[str, Image.Image]]] = None) -> Optional[Image.Image]:
@@ -561,4 +576,213 @@ class AIService:
             return [str(desc) for desc in descriptions]
         else:
             raise ValueError("Expected a list of page descriptions, but got: " + str(type(descriptions)))
+    
+    def parse_layout_pages(self, project_context: ProjectContext, language='zh') -> Dict:
+        """
+        直接排版模式：解析用户输入的完整页面内容，切分为各页但不修改文字
+        优先使用规则分页（识别 --- 分隔符和 # 标题），没有明确分隔符时才使用AI
+        
+        Args:
+            project_context: 项目上下文对象，包含所有原始信息
+        
+        Returns:
+            Dict with 'pages' list, each containing title, points, and description
+        """
+        layout_text = project_context.description_text or ""
+        
+        # 尝试使用规则分页
+        rule_based_pages = self._parse_layout_by_rules(layout_text)
+        
+        if rule_based_pages:
+            logger.info(f"使用规则分页成功，识别到 {len(rule_based_pages)} 个页面")
+            return {'pages': rule_based_pages}
+        
+        # 规则分页失败，使用AI
+        logger.info("未检测到明确分隔符，使用AI进行分页")
+        parse_prompt = get_layout_pages_prompt(project_context, language)
+        result = self.generate_json(parse_prompt, thinking_budget=1000)
+        
+        # 验证返回格式
+        if not isinstance(result, dict) or 'pages' not in result:
+            raise ValueError("Expected a dict with 'pages' key, but got: " + str(type(result)))
+        
+        return result
+    
+    @staticmethod
+    def _parse_layout_by_rules(text: str) -> Optional[List[Dict]]:
+        """
+        使用规则解析直接排版内容，识别 Markdown 分隔符和标题层级
+        
+        优先级：
+        1. --- 分隔符（最高优先级，明确的页面分隔）
+        2. # 一级标题（作为页面标题）
+        3. ## 二级标题（如果没有一级标题，则使用二级标题）
+        
+        Args:
+            text: 用户输入的文本内容
+        
+        Returns:
+            页面列表，如果无法识别则返回 None
+        """
+        if not text or not text.strip():
+            return None
+        
+        lines = text.split('\n')
+        pages = []
+        current_page_lines = []
+        current_title = None
+        has_explicit_separator = False
+        
+        # 检查是否有 --- 分隔符
+        for line in lines:
+            stripped = line.strip()
+            if stripped == '---' or stripped == '___' or stripped == '***':
+                has_explicit_separator = True
+                break
+        
+        if has_explicit_separator:
+            # 使用 --- 分隔符进行分页
+            logger.info("检测到 Markdown 分隔符 (---/___/***)，使用分隔符分页")
+            for line in lines:
+                stripped = line.strip()
+                if stripped in ['---', '___', '***']:
+                    # 遇到分隔符，保存当前页面
+                    if current_page_lines:
+                        page = AIService._extract_page_from_lines(current_page_lines, current_title)
+                        if page:
+                            pages.append(page)
+                        current_page_lines = []
+                        current_title = None
+                else:
+                    current_page_lines.append(line)
+                    # 提取标题
+                    if stripped.startswith('#'):
+                        title_match = re.match(r'^#+\s+(.+)$', stripped)
+                        if title_match and not current_title:
+                            current_title = title_match.group(1).strip()
+            
+            # 保存最后一个页面
+            if current_page_lines:
+                page = AIService._extract_page_from_lines(current_page_lines, current_title)
+                if page:
+                    pages.append(page)
+        else:
+            # 检查是否有标题层级
+            has_h1 = any(line.strip().startswith('# ') for line in lines)
+            has_h2 = any(line.strip().startswith('## ') for line in lines)
+            
+            if has_h1:
+                # 使用 # 一级标题作为页面分隔
+                logger.info("检测到一级标题 (#)，使用一级标题分页")
+                for line in lines:
+                    stripped = line.strip()
+                    if stripped.startswith('# '):
+                        # 遇到一级标题，保存当前页面
+                        if current_page_lines:
+                            page = AIService._extract_page_from_lines(current_page_lines, current_title)
+                            if page:
+                                pages.append(page)
+                            current_page_lines = []
+                        # 提取新标题
+                        current_title = stripped[2:].strip()
+                    current_page_lines.append(line)
+                
+                # 保存最后一个页面
+                if current_page_lines:
+                    page = AIService._extract_page_from_lines(current_page_lines, current_title)
+                    if page:
+                        pages.append(page)
+            elif has_h2:
+                # 使用 ## 二级标题作为页面分隔
+                logger.info("检测到二级标题 (##)，使用二级标题分页")
+                for line in lines:
+                    stripped = line.strip()
+                    if stripped.startswith('## '):
+                        # 遇到二级标题，保存当前页面
+                        if current_page_lines:
+                            page = AIService._extract_page_from_lines(current_page_lines, current_title)
+                            if page:
+                                pages.append(page)
+                            current_page_lines = []
+                        # 提取新标题
+                        current_title = stripped[3:].strip()
+                    current_page_lines.append(line)
+                
+                # 保存最后一个页面
+                if current_page_lines:
+                    page = AIService._extract_page_from_lines(current_page_lines, current_title)
+                    if page:
+                        pages.append(page)
+            else:
+                # 没有明确的分隔符或标题，返回 None 让 AI 处理
+                logger.info("未检测到明确的分隔符或标题层级")
+                return None
+        
+        # 如果成功识别到至少一个页面，返回结果
+        if pages:
+            return pages
+        
+        return None
+    
+    @staticmethod
+    def _extract_page_from_lines(lines: List[str], title: Optional[str]) -> Optional[Dict]:
+        """
+        从行列表中提取页面信息
+        
+        Args:
+            lines: 页面内容的行列表
+            title: 页面标题（可选）
+        
+        Returns:
+            页面字典，包含 title, points, description
+        """
+        # 移除空行
+        content_lines = [line for line in lines if line.strip()]
+        
+        if not content_lines:
+            return None
+        
+        # 重新组合内容
+        full_content = '\n'.join(lines).strip()
+        
+        # 提取标题（如果没有提供）
+        if not title:
+            for line in content_lines:
+                stripped = line.strip()
+                # 尝试从一级或二级标题提取
+                if stripped.startswith('# '):
+                    title = stripped[2:].strip()
+                    break
+                elif stripped.startswith('## '):
+                    title = stripped[3:].strip()
+                    break
+        
+        # 如果还是没有标题，使用第一行非空内容或默认标题
+        if not title:
+            title = content_lines[0].strip()[:50] if content_lines else "未命名页面"
+        
+        # 提取要点（bullet points）
+        points = []
+        for line in content_lines:
+            stripped = line.strip()
+            # 匹配各种列表格式
+            if stripped.startswith('-') or stripped.startswith('*') or stripped.startswith('•'):
+                point = stripped[1:].strip()
+                if point:
+                    points.append(point)
+            elif re.match(r'^\d+[.)、]\s+', stripped):
+                # 数字列表：1. 或 1) 或 1、
+                point = re.sub(r'^\d+[.)、]\s+', '', stripped)
+                if point:
+                    points.append(point)
+        
+        # 构建描述内容（保持原格式）
+        description = f"页面标题：{title}\n\n页面文字：\n{full_content}"
+        
+        return {
+            'title': title,
+            'points': points if points else ['原文内容'],
+            'description': description
+        }
+
 

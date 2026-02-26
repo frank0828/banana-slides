@@ -150,7 +150,7 @@ def create_project():
         
         creation_type = data.get('creation_type', 'idea')
         
-        if creation_type not in ['idea', 'outline', 'descriptions']:
+        if creation_type not in ['idea', 'outline', 'descriptions', 'layout']:
             return bad_request("Invalid creation_type")
         
         # Create project
@@ -486,6 +486,109 @@ def generate_from_description(project_id):
     except Exception as e:
         db.session.rollback()
         logger.error(f"generate_from_description failed: {str(e)}", exc_info=True)
+        return error_response('AI_SERVICE_ERROR', str(e), 503)
+
+
+@project_bp.route('/<project_id>/generate/from-layout', methods=['POST'])
+def generate_from_layout(project_id):
+    """
+    POST /api/projects/{project_id}/generate/from-layout - Direct layout mode: parse user content into pages without modifying text
+    
+    This endpoint:
+    1. Parses the layout_text to split into individual pages
+    2. Uses the user's EXACT text content for each page (no AI modification)
+    3. Creates pages with outline and description content filled
+    4. Sets project status to DESCRIPTIONS_GENERATED (ready for image generation)
+    
+    Request body (optional):
+    {
+        "layout_text": "...",  # if not provided, uses project.description_text
+        "language": "zh"  # output language: zh, en, ja, auto
+    }
+    """
+    
+    try:
+        project = Project.query.get(project_id)
+        
+        if not project:
+            return not_found('Project')
+        
+        if project.creation_type != 'layout':
+            return bad_request("This endpoint is only for layout type projects")
+        
+        # Get layout text and language
+        data = request.get_json() or {}
+        layout_text = data.get('layout_text') or project.description_text
+        language = data.get('language', current_app.config.get('OUTPUT_LANGUAGE', 'zh'))
+        
+        if not layout_text:
+            return bad_request("layout_text is required")
+        
+        project.description_text = layout_text
+        
+        # Initialize AI service
+        ai_service = AIService()
+        
+        # Get reference files content and create project context
+        reference_files_content = _get_project_reference_files_content(project_id)
+        project_context = ProjectContext(project, reference_files_content)
+        
+        logger.info(f"开始直接排版模式解析: 项目 {project_id}")
+        
+        # Parse layout content into pages (AI only splits, doesn't modify text)
+        logger.info("解析用户内容切分为页面...")
+        layout_result = ai_service.parse_layout_pages(project_context, language=language)
+        pages_data = layout_result.get('pages', [])
+        logger.info(f"解析完成，共 {len(pages_data)} 页")
+        
+        # Delete existing pages (using ORM session to trigger cascades)
+        old_pages = Page.query.filter_by(project_id=project_id).all()
+        for old_page in old_pages:
+            db.session.delete(old_page)
+        
+        # Create pages with both outline and description from user's exact content
+        pages_list = []
+        for i, page_data in enumerate(pages_data):
+            page = Page(
+                project_id=project_id,
+                order_index=i,
+                part=page_data.get('part'),
+                status='DESCRIPTION_GENERATED'  # 直接设置为已生成描述，跳过描述生成步骤
+            )
+            
+            # Set outline content
+            page.set_outline_content({
+                'title': page_data.get('title', ''),
+                'points': page_data.get('points', [])
+            })
+            
+            # Set description content - use user's EXACT text
+            desc_content = {
+                "text": page_data.get('description', ''),
+                "generated_at": datetime.utcnow().isoformat()
+            }
+            page.set_description_content(desc_content)
+            
+            db.session.add(page)
+            pages_list.append(page)
+        
+        # Update project status - ready for image generation
+        project.status = 'DESCRIPTIONS_GENERATED'
+        project.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        logger.info(f"直接排版模式完成: 项目 {project_id}, 创建了 {len(pages_list)} 个页面，已填充用户原文内容")
+        
+        # Return pages
+        return success_response({
+            'pages': [page.to_dict() for page in pages_list],
+            'status': 'DESCRIPTIONS_GENERATED'
+        })
+    
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"generate_from_layout failed: {str(e)}", exc_info=True)
         return error_response('AI_SERVICE_ERROR', str(e), 503)
 
 

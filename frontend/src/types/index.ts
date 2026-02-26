@@ -91,6 +91,7 @@ export interface Task {
 
 // 创建项目请求
 export interface CreateProjectRequest {
+  creation_type?: 'idea' | 'outline' | 'description' | 'layout';  // 创建类型
   idea_prompt?: string;
   outline_text?: string;
   description_text?: string;

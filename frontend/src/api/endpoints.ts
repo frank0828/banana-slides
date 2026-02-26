@@ -10,7 +10,9 @@ import type { Settings } from '../types/index';
 export const createProject = async (data: CreateProjectRequest): Promise<ApiResponse<Project>> => {
   // 根据输入类型确定 creation_type
   let creation_type = 'idea';
-  if (data.description_text) {
+  if (data.creation_type === 'layout') {
+    creation_type = 'layout';  // 直接排版模式
+  } else if (data.description_text) {
     creation_type = 'descriptions';
   } else if (data.outline_text) {
     creation_type = 'outline';
@@ -127,6 +129,24 @@ export const generateFromDescription = async (projectId: string, descriptionText
     `/api/projects/${projectId}/generate/from-description`,
     { 
       ...(descriptionText ? { description_text: descriptionText } : {}),
+      language: lang 
+    }
+  );
+  return response.data;
+};
+
+/**
+ * 直接排版模式：从用户完整内容生成页面（不修改文字）
+ * @param projectId 项目ID
+ * @param layoutText 用户完整页面内容（可选）
+ * @param language 输出语言（可选，默认从 sessionStorage 获取）
+ */
+export const generateFromLayout = async (projectId: string, layoutText?: string, language?: OutputLanguage): Promise<ApiResponse> => {
+  const lang = language || await getStoredOutputLanguage();
+  const response = await apiClient.post<ApiResponse>(
+    `/api/projects/${projectId}/generate/from-layout`,
+    { 
+      ...(layoutText ? { layout_text: layoutText } : {}),
       language: lang 
     }
   );
@@ -456,6 +476,68 @@ export const generateMaterialImage = async (
   const response = await apiClient.post<ApiResponse<{ task_id: string; status: string }>>(
     `/api/projects/${projectId}/materials/generate`,
     formData
+  );
+  return response.data;
+};
+
+export interface AdImageConfig {
+  product: {
+    name: string;
+    selling_points?: string[];
+    price?: string;
+    target_audience?: string;
+  };
+  style?: {
+    visual_style?: string;
+    scene?: string;
+    mood?: string;
+  };
+  layout?: {
+    aspect_ratio?: string;
+    composition?: string;
+    text_density?: string;
+    resolution?: string;
+  };
+  tone?: string;
+  /** AI 自由发挥模式：AI 自主决定所有视觉方向 */
+  ai_creative_mode?: boolean;
+  /** 用户追加的自定义描述，拼接到 prompt 末尾 */
+  custom_prompt?: string;
+}
+
+/**
+ * 按电商广告配置生成素材图片（电商广告模式）
+ * @param productImages  商品图片（第一张为主参考图，其余为额外）
+ * @param styleRefImages 风格参考图（独立字段 style_ref_images[]）
+ */
+export const generateAdMaterialImage = async (
+  projectId: string,
+  config: AdImageConfig,
+  productImages?: File[],
+  styleRefImages?: File[]
+): Promise<ApiResponse<{ task_id: string; status: string }>> => {
+  const url = `/api/projects/${projectId}/materials/generate-ad`;
+  const hasFiles = (productImages && productImages.length > 0) || (styleRefImages && styleRefImages.length > 0);
+  if (hasFiles) {
+    const formData = new FormData();
+    formData.append('config', JSON.stringify(config));
+    (productImages || []).forEach((file, i) => {
+      if (i === 0) formData.append('ref_image', file);
+      else formData.append('extra_images', file);
+    });
+    (styleRefImages || []).forEach((file) => {
+      formData.append('style_ref_images', file);
+    });
+    const response = await apiClient.post<ApiResponse<{ task_id: string; status: string }>>(
+      url,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+    return response.data;
+  }
+  const response = await apiClient.post<ApiResponse<{ task_id: string; status: string }>>(
+    url,
+    { ...config }
   );
   return response.data;
 };

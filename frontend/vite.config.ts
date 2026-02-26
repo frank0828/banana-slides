@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
   // 读取后端端口，默认 5000
   // 支持从环境变量 PORT 读取（与后端保持一致）
   const backendPort = env.PORT || '5000'
-  const backendUrl = `http://localhost:${backendPort}`
+  const backendUrl = `http://127.0.0.1:${backendPort}`
   
   return {
     envDir,

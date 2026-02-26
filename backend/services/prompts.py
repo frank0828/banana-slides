@@ -348,6 +348,132 @@ def get_image_generation_prompt(page_desc: str, outline_text: str,
     return prompt
 
 
+def get_ad_image_prompt(ad_config: Dict, language: str = None) -> str:
+    """
+    为电商广告图生成图片描述 prompt
+
+    Args:
+        ad_config: 包含 product/style/layout/tone 的配置字典
+                   新增字段：
+                   - ai_creative_mode (bool): AI 自由发挥模式，AI 自主决定所有视觉方向
+                   - custom_prompt (str): 用户追加的自定义描述
+                   - has_style_ref_images (bool): 是否附带了风格参考图
+                   - num_product_images (int): 商品图数量（用于提示 AI 图片位置关系）
+    """
+    from textwrap import dedent as _dedent
+
+    product = ad_config.get("product") or {}
+    style = ad_config.get("style") or {}
+    layout = ad_config.get("layout") or {}
+    tone = ad_config.get("tone") or ""
+
+    # 新增字段
+    ai_creative_mode = bool(ad_config.get("ai_creative_mode", False))
+    custom_prompt = (ad_config.get("custom_prompt") or "").strip()
+    has_style_ref_images = bool(ad_config.get("has_style_ref_images", False))
+    num_product_images = int(ad_config.get("num_product_images", 0))
+
+    name = (product.get("name") or "").strip()
+    selling_points = product.get("selling_points") or []
+    price = (product.get("price") or "").strip()
+    target_audience = (product.get("target_audience") or "").strip()
+
+    visual_style = (style.get("visual_style") or "").strip()
+    scene = (style.get("scene") or "").strip()
+    mood = (style.get("mood") or "").strip()
+
+    aspect_ratio = (layout.get("aspect_ratio") or "1:1").strip()
+    composition = (layout.get("composition") or "").strip()
+    text_density = (layout.get("text_density") or "").strip()
+
+    selling_points_text = ", ".join(
+        str(p).strip() for p in selling_points if str(p).strip()
+    )
+
+    # 图片引用说明（告知 AI 附带图片的用途与顺序）
+    image_ref_note = ""
+    if num_product_images > 0 and has_style_ref_images:
+        image_ref_note = (
+            f"\n[Reference Images]\n"
+            f"- The first {num_product_images} image(s) are the PRODUCT IMAGES — use them to accurately render the actual product appearance.\n"
+            f"- The remaining image(s) are STYLE REFERENCE images — extract their visual style, color palette, composition, and mood and apply it to the final ad.\n"
+        )
+    elif num_product_images > 0:
+        image_ref_note = (
+            f"\n[Reference Images]\n"
+            f"- {num_product_images} product image(s) are provided — use them to accurately render the actual product appearance.\n"
+        )
+    elif has_style_ref_images:
+        image_ref_note = (
+            "\n[Reference Images]\n"
+            "- Style reference image(s) are provided — extract their visual style, color palette, composition, and mood and apply it to the final ad.\n"
+        )
+
+    # 自定义补充
+    custom_section = ""
+    if custom_prompt:
+        custom_section = f"\n[Additional Instructions (must follow)]\n{custom_prompt}\n"
+
+    if ai_creative_mode:
+        # ── AI 自由发挥模式：给 AI 最大创意空间 ──────────────────────────────
+        prompt = _dedent(f"""\
+        You are a top-tier e-commerce creative director with full artistic freedom.
+        Design a stunning, high-conversion product advertisement image.
+
+        [Product Core Info]
+        - Product name: {name}
+        - Selling points: {selling_points_text or "Highlight the most compelling product value"}
+        {f"- Price / tag: {price}" if price else ""}
+        {f"- Target audience: {target_audience}" if target_audience else ""}
+
+        [Creative Direction — AI Full Control]
+        You decide everything: visual style, color palette, scene, background, mood, layout,
+        composition, text placement, and aspect ratio. Make bold, creative decisions to maximize
+        visual impact and conversion rate. Think like an award-winning ad creative.
+        {image_ref_note}
+        Design guidelines:
+        - Clearly highlight the product and its key selling points.
+        - Keep the design clean and readable on mobile screens.
+        - Use strong contrast to make the main information pop.
+        - Simulate short, punchy ad copy and price tag elements.
+        - Do NOT output markdown or bullet symbols — only describe the visual scene.
+        {custom_section}""")
+    else:
+        # ── 结构化配置模式（原有逻辑，保持兼容）────────────────────────────
+        prompt = _dedent(f"""\
+        You are a senior e-commerce visual designer. Design a high-conversion product ad image based on the following configuration.
+
+        [Product]
+        - Name: {name}
+        - Selling points: {selling_points_text or "Focus on the core value of the product"}
+        - Price / tag: {price or "Price only if necessary, do not over-emphasize if empty"}
+        - Target audience: {target_audience or "General online shoppers"}
+
+        [Visual style]
+        - Visual style: {visual_style or "Modern e-commerce style, clean and clear"}
+        - Scene: {scene or "Simple background that supports the product theme"}
+        - Mood: {mood or "Positive and trustworthy commercial feeling"}
+
+        [Layout]
+        - Aspect ratio: {aspect_ratio}
+        - Composition: {composition or "Product as the main focus, text in a clean area"}
+        - Text density: {text_density or "medium"}
+
+        [Tone]
+        - Copy tone: {tone or "Short, powerful, and easy-to-read e-commerce copy"}
+        {image_ref_note}
+        Design guidelines:
+        - Clearly highlight the product and its selling points.
+        - Keep the layout clean and readable on mobile screens.
+        - Use strong contrast between background and main information.
+        - Avoid long paragraphs; simulate short ad copy blocks and price tags.
+        - Do NOT output markdown or bullet symbols, only describe the visual scene.
+        {custom_section}""")
+
+    logger.debug(f"[get_ad_image_prompt] Final prompt:\n{prompt}")
+    return prompt
+
+
 def get_image_edit_prompt(edit_instruction: str, original_description: str = None) -> str:
     """
     生成图片编辑 prompt
@@ -703,4 +829,67 @@ You are a helpful assistant that modifies PPT page descriptions based on user re
     
     final_prompt = files_xml + prompt
     logger.debug(f"[get_descriptions_refinement_prompt] Final prompt:\n{final_prompt}")
+    return final_prompt
+
+
+def get_layout_pages_prompt(project_context: 'ProjectContext', language: str = None) -> str:
+    """
+    直接排版模式：解析用户输入的完整页面内容，切分为各页但不修改文字
+    
+    Args:
+        project_context: 项目上下文对象，包含所有原始信息
+        
+    Returns:
+        格式化后的 prompt 字符串
+    """
+    files_xml = _format_reference_files_xml(project_context.reference_files_content)
+    layout_text = project_context.description_text or ""
+    
+    prompt = (f"""\
+You are a helpful assistant that parses user-provided PPT page content for direct layout rendering.
+
+IMPORTANT: This is "Direct Layout Mode" - the user has provided COMPLETE page content that should be used EXACTLY as written.
+You must NOT modify, rewrite, optimize, or change ANY of the user's text content.
+
+The user has provided the following page content:
+
+{layout_text}
+
+Your task is to:
+1. Identify how many pages the user wants
+2. For each page, extract the EXACT content the user provided (do not modify or improve the text)
+3. Return a structured format with outline and descriptions
+
+Return a JSON object with this structure:
+{{
+    "pages": [
+        {{
+            "title": "Page title extracted from user content",
+            "points": ["Key point 1", "Key point 2"],
+            "description": "The COMPLETE page description - copy the user's EXACT text for this page, including all content, bullet points, and formatting"
+        }}
+    ]
+}}
+
+CRITICAL RULES:
+- DO NOT modify, rewrite, improve, or optimize any of the user's text
+- DO NOT add new content that wasn't in the original text
+- DO NOT remove any content from the original text
+- Copy the user's text EXACTLY as written for each page's description
+- The "description" field should contain the user's complete text for that page in this format:
+  页面标题：[标题]
+  
+  页面文字：
+  - [用户原文要点1]
+  - [用户原文要点2]
+  ...
+- Preserve all markdown image links (e.g., ![description](/files/mineru/xxx/image.png))
+- Preserve all formatting, bullet points, and structure from the original
+
+Now parse the user's content into pages. Return only the JSON, don't include any other text.
+{get_language_instruction(language)}
+""")
+    
+    final_prompt = files_xml + prompt
+    logger.debug(f"[get_layout_pages_prompt] Final prompt:\n{final_prompt}")
     return final_prompt

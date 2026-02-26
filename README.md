@@ -438,6 +438,52 @@ banana-slides/
 ```
 
 
+## 📝 最近更新记录
+
+### 电商广告图生成功能增强（2026-02）
+
+#### 新增功能
+
+**素材生成弹窗 · 电商广告模式**（`frontend/src/components/shared/MaterialGeneratorModal.tsx`）
+
+| 功能 | 说明 |
+|------|------|
+| AI 自由发挥模式 | 开关式切换，开启后 AI 全权决定视觉风格/构图/配色，隐藏所有结构化参数 |
+| 风格参考图上传 | 独立于商品图，带紫色「风格参考」角标，AI 会模仿其视觉风格和构图 |
+| 自定义补充描述 | 始终可见的自由文本框，内容追加到 prompt 末尾的 `[Additional Instructions]` 区块 |
+| 图片比例选择 | 移至始终显示区域（不受 AI 自由发挥模式影响），支持 1:1 / 3:4 / 4:3 / 9:16 / 16:9 |
+| 图片尺寸选择 | 新增 1K / 2K / 4K 选项（始终显示），UI 层面记录用户偏好 |
+| 预览自动刷新 | 每次打开弹窗 / 点击生成时自动清空旧预览，避免显示上次结果 |
+
+**后端 prompt 模板**（`backend/services/prompts.py`）
+- 新增 AI 自由发挥模式下的创意总监风格 prompt（`ai_creative_mode=True`）
+- 支持风格参考图 / 商品图位置说明（`[Reference Images]` 区块）
+- 支持自定义补充描述透传（`[Additional Instructions]` 区块）
+
+**后端接口**（`backend/controllers/material_controller.py`）
+- `/generate-ad` 接口新增解析 `style_ref_images[]` 字段（风格参考图独立字段）
+- 新增读取 `layout.resolution` 参数（保留供后续扩展）
+- 图片顺序：商品图在前、风格参考图在后，并在 prompt 中说明各自用途
+
+**前端 API**（`frontend/src/api/endpoints.ts`）
+- `generateAdMaterialImage` 新增 `styleRefImages` 参数，自动转 FormData 上传
+
+---
+
+#### 稳定性修复
+
+**GenAI 图像生成 Provider**（`backend/services/ai_providers/image/genai_provider.py`）
+
+| 问题 | 原因 | 修复方式 |
+|------|------|----------|
+| `RemoteProtocolError: Server disconnected` | httpx 默认开启 keep-alive，图像生成耗时 30s+，连接被代理关闭后复用失败 | 禁用连接池 `max_keepalive_connections=0`，每次请求新建连接 |
+| 任务卡死不超时 | 传入自定义 `httpx_client` 后，SDK 的 `HttpOptions.timeout` 不再透传，httpx 默认无限等待 | 直接在 `httpx.Client` 上设置 `timeout=httpx.Timeout(360, connect=30)` |
+| 重试时 `AttributeError: 'BaseApiClient' object has no attribute '_api_key'` | 重试逻辑访问了 SDK 私有属性，SDK 版本升级后属性名变更 | 在 `__init__` 时将 `api_key` / `api_base` 保存为实例变量，重试时直接使用 |
+| `image_size="2K"` 导致 API 超时 | Gemini `generate_content` 图像模式不支持 `image_size` 参数，传入无效值导致 API 慢响应 | 移除 `ImageConfig.image_size`，仅保留 `aspect_ratio` |
+| 超时后无限重试 | `ReadTimeout` 被错误加入重试关键词，导致超时 × 3 倍等待 | 重试仅针对连接断开类错误（`RemoteProtocolError` 等），超时直接快速失败 |
+
+---
+
 ## 🤝 贡献指南
 
 欢迎通过

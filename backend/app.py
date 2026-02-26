@@ -17,6 +17,14 @@ _project_root = Path(__file__).parent.parent
 _env_file = _project_root / '.env'
 load_dotenv(dotenv_path=_env_file, override=True)
 
+# 确保 AI API 调用（aihubmix.com / Google Gemini）不经过本地系统代理
+# Windows 注册表代理（如 Clash/V2Ray http://127.0.0.1:20809/）会被 Python urllib 读取
+# 解决方案：显式将代理变量设为空字符串，阻止 urllib 回退到注册表
+for _proxy_var in ('HTTP_PROXY', 'http_proxy', 'HTTPS_PROXY', 'https_proxy', 'ALL_PROXY', 'all_proxy'):
+    os.environ[_proxy_var] = ''
+os.environ['NO_PROXY'] = '*'
+os.environ['no_proxy'] = '*'
+
 from flask import Flask
 from flask_cors import CORS
 from models import db
