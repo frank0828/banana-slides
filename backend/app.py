@@ -121,6 +121,8 @@ def create_app():
     with app.app_context():
         # Load settings from database and sync to app.config
         _load_settings_to_config(app)
+        # 启动时自动清理残留的 PROCESSING 任务（防止重启后产生僵尸任务）
+        _cleanup_stale_tasks(app)
 
     # Health check endpoint
     @app.route('/health')
@@ -205,6 +207,21 @@ def _load_settings_to_config(app):
         logging.warning(f"Could not load settings from database: {e}")
 
 
+def _cleanup_stale_tasks(app):
+    """启动时将残留的 PROCESSING 任务标记为 FAILED，防止重启后产生僵尸任务"""
+    try:
+        from models.task import Task
+        stale = Task.query.filter_by(status='PROCESSING').all()
+        if stale:
+            for t in stale:
+                t.status = 'FAILED'
+                t.error_message = 'Server restarted - task interrupted'
+            db.session.commit()
+            logging.info(f"Cleaned up {len(stale)} stale PROCESSING tasks on startup")
+    except Exception as e:
+        logging.warning(f"Failed to cleanup stale tasks: {e}")
+
+
 # Create app instance
 app = create_app()
 
@@ -233,4 +250,4 @@ if __name__ == '__main__':
     
     # Enable reloader for hot reload in development
     # Using absolute paths for database, so WSL path issues should not occur
-    app.run(host='0.0.0.0', port=port, debug=debug, use_reloader=True)
+    app.run(host='0.0.0.0', port=port, debug=debug, use_reloader=False)

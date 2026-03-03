@@ -59,6 +59,8 @@ export const MaterialGeneratorModal: React.FC<MaterialGeneratorModalProps> = ({
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const elapsedTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isMaterialSelectorOpen, setIsMaterialSelectorOpen] = useState(false);
 
   const handleRefImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,6 +124,9 @@ export const MaterialGeneratorModal: React.FC<MaterialGeneratorModalProps> = ({
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
       }
+      if (elapsedTimerRef.current) {
+        clearInterval(elapsedTimerRef.current);
+      }
     };
   }, []);
 
@@ -135,8 +140,26 @@ export const MaterialGeneratorModal: React.FC<MaterialGeneratorModalProps> = ({
 
   const pollMaterialTask = async (taskId: string) => {
     const targetProjectId = projectId || 'global';
-    const maxAttempts = 180;
+    const maxAttempts = 90;  // 每2秒一次，最多等 3 分钟
     let attempts = 0;
+
+    // 启动计时器
+    setElapsedSeconds(0);
+    if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
+    elapsedTimerRef.current = setInterval(() => {
+      setElapsedSeconds(prev => prev + 1);
+    }, 1000);
+
+    const stopPolling = () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+      if (elapsedTimerRef.current) {
+        clearInterval(elapsedTimerRef.current);
+        elapsedTimerRef.current = null;
+      }
+    };
 
     const poll = async () => {
       try {
@@ -159,28 +182,19 @@ export const MaterialGeneratorModal: React.FC<MaterialGeneratorModalProps> = ({
           }
 
           setIsGenerating(false);
-          if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current);
-            pollingIntervalRef.current = null;
-          }
+          stopPolling();
         } else if (task.status === 'FAILED') {
           show({
             message: task.error_message || '素材生成失败',
             type: 'error',
           });
           setIsGenerating(false);
-          if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current);
-            pollingIntervalRef.current = null;
-          }
+          stopPolling();
         } else if (task.status === 'PENDING' || task.status === 'RUNNING' || task.status === 'PROCESSING') {
           if (attempts >= maxAttempts) {
-            show({ message: '素材生成超时，请稍后查看素材库', type: 'info' });
+            show({ message: '素材生成超时（超过3分钟），请稍后查看素材库', type: 'info' });
             setIsGenerating(false);
-            if (pollingIntervalRef.current) {
-              clearInterval(pollingIntervalRef.current);
-              pollingIntervalRef.current = null;
-            }
+            stopPolling();
           }
         }
       } catch (error: any) {
@@ -188,10 +202,7 @@ export const MaterialGeneratorModal: React.FC<MaterialGeneratorModalProps> = ({
         if (attempts >= maxAttempts) {
           show({ message: '轮询任务状态失败，请稍后查看素材库', type: 'error' });
           setIsGenerating(false);
-          if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current);
-            pollingIntervalRef.current = null;
-          }
+          stopPolling();
         }
       }
     };
@@ -310,8 +321,13 @@ export const MaterialGeneratorModal: React.FC<MaterialGeneratorModalProps> = ({
         <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
           <h4 className="text-sm font-semibold text-gray-700 mb-2">生成结果</h4>
           {isGenerating ? (
-            <div className="aspect-video rounded-lg overflow-hidden border border-gray-200">
+            <div className="aspect-video rounded-lg overflow-hidden border border-gray-200 relative">
               <Skeleton className="w-full h-full" />
+              <div className="absolute bottom-2 left-0 right-0 flex justify-center">
+                <span className="bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                  AI 生成中... 已等待 {elapsedSeconds}s
+                </span>
+              </div>
             </div>
           ) : previewUrl ? (
             <div className="aspect-video bg-white rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center">

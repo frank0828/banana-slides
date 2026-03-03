@@ -1,0 +1,1513 @@
+2026-03-01 13:18:43,130 [INFO] root - Loaded AI_PROVIDER_FORMAT from settings: openai
+2026-03-01 13:18:43,132 [INFO] root - Loaded API_BASE from settings: https://aihubmix.com/gemini
+2026-03-01 13:18:43,132 [INFO] root - Loaded API key from settings
+2026-03-01 13:18:43,132 [INFO] root - Loaded image settings: 2K, 16:9
+2026-03-01 13:18:43,132 [INFO] root - Loaded worker settings: desc=5, img=8
+ * Serving Flask app 'app'
+ * Debug mode: off
+2026-03-01 13:18:43,141 [INFO] werkzeug - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.2:5000
+2026-03-01 13:18:43,142 [INFO] werkzeug - [33mPress CTRL+C to quit[0m
+2026-03-01 13:18:43,142 [INFO] werkzeug -  * Restarting with stat
+2026-03-01 13:18:45,046 [INFO] root - Loaded AI_PROVIDER_FORMAT from settings: openai
+2026-03-01 13:18:45,047 [INFO] root - Loaded API_BASE from settings: https://aihubmix.com/gemini
+2026-03-01 13:18:45,047 [INFO] root - Loaded API key from settings
+2026-03-01 13:18:45,047 [INFO] root - Loaded image settings: 2K, 16:9
+2026-03-01 13:18:45,047 [INFO] root - Loaded worker settings: desc=5, img=8
+2026-03-01 13:19:39,779 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:19:39] "GET /api/user-templates HTTP/1.1" 200 -
+2026-03-01 13:19:39,786 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:19:39] "GET /api/user-templates HTTP/1.1" 200 -
+2026-03-01 13:19:39,795 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:19:39] "GET /api/projects/db77e56e-744c-4a74-9f20-69da6d242b0d HTTP/1.1" 200 -
+2026-03-01 13:19:39,797 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:19:39] "GET /api/user-templates HTTP/1.1" 200 -
+2026-03-01 13:19:39,805 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:19:39] "GET /api/user-templates HTTP/1.1" 200 -
+2026-03-01 13:19:39,811 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:19:39] "GET /api/projects/db77e56e-744c-4a74-9f20-69da6d242b0d HTTP/1.1" 200 -
+2026-03-01 13:19:39,822 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:19:39] "GET /files/user-templates/f75cb771-83e9-48f3-98c9-384d48d0af0d/template.jpg HTTP/1.1" 200 -
+2026-03-01 13:19:39,823 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:19:39] "GET /files/user-templates/11045d39-34f5-473c-9547-298b292d5d6e/template.png HTTP/1.1" 200 -
+2026-03-01 13:19:55,244 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_KEY from app.config: sk-J6QK4mg3crGJ6P0VBcA33cD434Aa427e88C63133Ef05A8C6
+2026-03-01 13:19:55,245 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_BASE from app.config: https://aihubmix.com/gemini
+2026-03-01 13:19:55,245 [INFO] services.ai_providers - Using OpenAI format for text generation, model: gemini-3-flash-preview
+2026-03-01 13:19:55,287 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_KEY from app.config: sk-J6QK4mg3crGJ6P0VBcA33cD434Aa427e88C63133Ef05A8C6
+2026-03-01 13:19:55,288 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_BASE from app.config: https://aihubmix.com/gemini
+2026-03-01 13:19:55,288 [INFO] services.ai_providers - Using OpenAI format for image generation, model: gemini-3-pro-image-preview
+2026-03-01 13:19:55,288 [WARNING] services.ai_providers - OpenAI format only supports 1K resolution, 4K is not available
+2026-03-01 13:19:55,351 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:19:55] "[35m[1mPOST /api/projects/none/materials/generate-ad HTTP/1.1[0m" 202 -
+2026-03-01 13:19:55,365 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:19:55] "GET /api/projects/global/tasks/0388539f-addf-41ce-bfc1-eda0e85b96d0 HTTP/1.1" 200 -
+2026-03-01 13:19:57,090 [ERROR] services.ai_providers.image.openai_provider - Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py", line 343, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 136, in handle_request
+    raise exc
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_backends\sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 982, in request
+    response = self._client.send(
+               ^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 230, in generate_image
+    response = self.client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1192, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1014, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.
+2026-03-01 13:19:57,099 [ERROR] services.ai_service - Error generating image: Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py", line 343, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 136, in handle_request
+    raise exc
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_backends\sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 982, in request
+    response = self._client.send(
+               ^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 230, in generate_image
+    response = self.client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1192, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1014, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_service.py", line 446, in generate_image
+    return self.image_provider.generate_image(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 294, in generate_image
+    raise Exception(error_detail) from e
+Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+2026-03-01 13:19:57,106 [ERROR] services.task_manager - Task 0388539f-addf-41ce-bfc1-eda0e85b96d0 FAILED: Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py", line 343, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 136, in handle_request
+    raise exc
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_backends\sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 982, in request
+    response = self._client.send(
+               ^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 230, in generate_image
+    response = self.client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1192, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1014, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_service.py", line 446, in generate_image
+    return self.image_provider.generate_image(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 294, in generate_image
+    raise Exception(error_detail) from e
+Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\task_manager.py", line 703, in generate_material_image_task
+    image = ai_service.generate_image(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\backend\services\ai_service.py", line 456, in generate_image
+    raise Exception(error_detail) from e
+Exception: Error generating image: Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+
+2026-03-01 13:19:57,365 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:19:57] "GET /api/projects/global/tasks/0388539f-addf-41ce-bfc1-eda0e85b96d0 HTTP/1.1" 200 -
+2026-03-01 13:20:22,469 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_KEY from app.config: sk-J6QK4mg3crGJ6P0VBcA33cD434Aa427e88C63133Ef05A8C6
+2026-03-01 13:20:22,472 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_BASE from app.config: https://aihubmix.com/gemini
+2026-03-01 13:20:22,472 [INFO] services.ai_providers - Using OpenAI format for text generation, model: gemini-3-flash-preview
+2026-03-01 13:20:22,473 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_KEY from app.config: sk-J6QK4mg3crGJ6P0VBcA33cD434Aa427e88C63133Ef05A8C6
+2026-03-01 13:20:22,473 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_BASE from app.config: https://aihubmix.com/gemini
+2026-03-01 13:20:22,473 [INFO] services.ai_providers - Using OpenAI format for image generation, model: gemini-3-pro-image-preview
+2026-03-01 13:20:22,473 [WARNING] services.ai_providers - OpenAI format only supports 1K resolution, 4K is not available
+2026-03-01 13:20:22,536 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:20:22] "[35m[1mPOST /api/projects/none/materials/generate-ad HTTP/1.1[0m" 202 -
+2026-03-01 13:20:22,560 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:20:22] "GET /api/projects/global/tasks/2c8ab16a-3ede-40d3-bf9c-2dec0fe336f7 HTTP/1.1" 200 -
+2026-03-01 13:20:23,715 [ERROR] services.ai_providers.image.openai_provider - Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py", line 343, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 136, in handle_request
+    raise exc
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_backends\sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 982, in request
+    response = self._client.send(
+               ^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 230, in generate_image
+    response = self.client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1192, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1014, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.
+2026-03-01 13:20:23,719 [ERROR] services.ai_service - Error generating image: Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py", line 343, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 136, in handle_request
+    raise exc
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_backends\sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 982, in request
+    response = self._client.send(
+               ^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 230, in generate_image
+    response = self.client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1192, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1014, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_service.py", line 446, in generate_image
+    return self.image_provider.generate_image(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 294, in generate_image
+    raise Exception(error_detail) from e
+Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+2026-03-01 13:20:23,728 [ERROR] services.task_manager - Task 2c8ab16a-3ede-40d3-bf9c-2dec0fe336f7 FAILED: Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py", line 343, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 136, in handle_request
+    raise exc
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_backends\sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 982, in request
+    response = self._client.send(
+               ^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 230, in generate_image
+    response = self.client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1192, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1014, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_service.py", line 446, in generate_image
+    return self.image_provider.generate_image(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 294, in generate_image
+    raise Exception(error_detail) from e
+Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\task_manager.py", line 703, in generate_material_image_task
+    image = ai_service.generate_image(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\backend\services\ai_service.py", line 456, in generate_image
+    raise Exception(error_detail) from e
+Exception: Error generating image: Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+
+2026-03-01 13:20:24,563 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:20:24] "GET /api/projects/global/tasks/2c8ab16a-3ede-40d3-bf9c-2dec0fe336f7 HTTP/1.1" 200 -
+2026-03-01 13:21:11,492 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_KEY from app.config: sk-J6QK4mg3crGJ6P0VBcA33cD434Aa427e88C63133Ef05A8C6
+2026-03-01 13:21:11,494 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_BASE from app.config: https://aihubmix.com/gemini
+2026-03-01 13:21:11,494 [INFO] services.ai_providers - Using OpenAI format for text generation, model: gemini-3-flash-preview
+2026-03-01 13:21:11,495 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_KEY from app.config: sk-J6QK4mg3crGJ6P0VBcA33cD434Aa427e88C63133Ef05A8C6
+2026-03-01 13:21:11,495 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_BASE from app.config: https://aihubmix.com/gemini
+2026-03-01 13:21:11,495 [INFO] services.ai_providers - Using OpenAI format for image generation, model: gemini-3-pro-image-preview
+2026-03-01 13:21:11,495 [WARNING] services.ai_providers - OpenAI format only supports 1K resolution, 4K is not available
+2026-03-01 13:21:11,542 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:21:11] "[35m[1mPOST /api/projects/none/materials/generate-ad HTTP/1.1[0m" 202 -
+2026-03-01 13:21:11,616 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:21:11] "GET /api/projects/global/tasks/a0680f0f-1e10-492a-9d5f-5cee0660d38a HTTP/1.1" 200 -
+2026-03-01 13:21:12,755 [ERROR] services.ai_providers.image.openai_provider - Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py", line 343, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 136, in handle_request
+    raise exc
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_backends\sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 982, in request
+    response = self._client.send(
+               ^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 230, in generate_image
+    response = self.client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1192, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1014, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.
+2026-03-01 13:21:12,761 [ERROR] services.ai_service - Error generating image: Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py", line 343, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 136, in handle_request
+    raise exc
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_backends\sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 982, in request
+    response = self._client.send(
+               ^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 230, in generate_image
+    response = self.client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1192, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1014, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_service.py", line 446, in generate_image
+    return self.image_provider.generate_image(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 294, in generate_image
+    raise Exception(error_detail) from e
+Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+2026-03-01 13:21:12,768 [ERROR] services.task_manager - Task a0680f0f-1e10-492a-9d5f-5cee0660d38a FAILED: Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py", line 343, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 136, in handle_request
+    raise exc
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_backends\sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 982, in request
+    response = self._client.send(
+               ^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 230, in generate_image
+    response = self.client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1192, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1014, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_service.py", line 446, in generate_image
+    return self.image_provider.generate_image(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 294, in generate_image
+    raise Exception(error_detail) from e
+Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\task_manager.py", line 703, in generate_material_image_task
+    image = ai_service.generate_image(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\backend\services\ai_service.py", line 456, in generate_image
+    raise Exception(error_detail) from e
+Exception: Error generating image: Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+
+2026-03-01 13:21:13,634 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:21:13] "GET /api/projects/global/tasks/a0680f0f-1e10-492a-9d5f-5cee0660d38a HTTP/1.1" 200 -
+2026-03-01 13:22:30,413 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:22:30] "GET /api/settings HTTP/1.1" 200 -
+2026-03-01 13:22:30,418 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:22:30] "GET /api/settings HTTP/1.1" 200 -
+2026-03-01 13:22:40,305 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:22:40] "GET /api/user-templates HTTP/1.1" 200 -
+2026-03-01 13:22:40,311 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:22:40] "GET /api/user-templates HTTP/1.1" 200 -
+2026-03-01 13:22:40,315 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:22:40] "GET /api/user-templates HTTP/1.1" 200 -
+2026-03-01 13:22:40,318 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:22:40] "GET /api/user-templates HTTP/1.1" 200 -
+2026-03-01 13:22:57,984 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_KEY from app.config: sk-J6QK4mg3crGJ6P0VBcA33cD434Aa427e88C63133Ef05A8C6
+2026-03-01 13:22:57,986 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_BASE from app.config: https://aihubmix.com/gemini
+2026-03-01 13:22:57,986 [INFO] services.ai_providers - Using OpenAI format for text generation, model: gemini-3-flash-preview
+2026-03-01 13:22:57,987 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_KEY from app.config: sk-J6QK4mg3crGJ6P0VBcA33cD434Aa427e88C63133Ef05A8C6
+2026-03-01 13:22:57,988 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_BASE from app.config: https://aihubmix.com/gemini
+2026-03-01 13:22:57,988 [INFO] services.ai_providers - Using OpenAI format for image generation, model: gemini-3-pro-image-preview
+2026-03-01 13:22:57,988 [WARNING] services.ai_providers - OpenAI format only supports 1K resolution, 4K is not available
+2026-03-01 13:22:58,054 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:22:58] "[35m[1mPOST /api/projects/none/materials/generate-ad HTTP/1.1[0m" 202 -
+2026-03-01 13:22:58,064 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:22:58] "GET /api/projects/global/tasks/abb1b9e2-c68b-4d35-a1dc-377bde179268 HTTP/1.1" 200 -
+2026-03-01 13:22:59,286 [ERROR] services.ai_providers.image.openai_provider - Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py", line 343, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 136, in handle_request
+    raise exc
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_backends\sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 982, in request
+    response = self._client.send(
+               ^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 230, in generate_image
+    response = self.client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1192, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1014, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.
+2026-03-01 13:22:59,291 [ERROR] services.ai_service - Error generating image: Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py", line 343, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 136, in handle_request
+    raise exc
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_backends\sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 982, in request
+    response = self._client.send(
+               ^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 230, in generate_image
+    response = self.client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1192, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1014, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_service.py", line 446, in generate_image
+    return self.image_provider.generate_image(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 294, in generate_image
+    raise Exception(error_detail) from e
+Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+2026-03-01 13:22:59,298 [ERROR] services.task_manager - Task abb1b9e2-c68b-4d35-a1dc-377bde179268 FAILED: Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py", line 343, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 136, in handle_request
+    raise exc
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_backends\sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 982, in request
+    response = self._client.send(
+               ^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 230, in generate_image
+    response = self.client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1192, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1014, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_service.py", line 446, in generate_image
+    return self.image_provider.generate_image(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 294, in generate_image
+    raise Exception(error_detail) from e
+Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\task_manager.py", line 703, in generate_material_image_task
+    image = ai_service.generate_image(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\backend\services\ai_service.py", line 456, in generate_image
+    raise Exception(error_detail) from e
+Exception: Error generating image: Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+
+2026-03-01 13:23:00,078 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:00] "GET /api/projects/global/tasks/abb1b9e2-c68b-4d35-a1dc-377bde179268 HTTP/1.1" 200 -
+2026-03-01 13:23:07,488 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_KEY from app.config: sk-J6QK4mg3crGJ6P0VBcA33cD434Aa427e88C63133Ef05A8C6
+2026-03-01 13:23:07,490 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_BASE from app.config: https://aihubmix.com/gemini
+2026-03-01 13:23:07,490 [INFO] services.ai_providers - Using OpenAI format for text generation, model: gemini-3-flash-preview
+2026-03-01 13:23:07,491 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_KEY from app.config: sk-J6QK4mg3crGJ6P0VBcA33cD434Aa427e88C63133Ef05A8C6
+2026-03-01 13:23:07,491 [INFO] services.ai_providers - [CONFIG] Using OPENAI_API_BASE from app.config: https://aihubmix.com/gemini
+2026-03-01 13:23:07,491 [INFO] services.ai_providers - Using OpenAI format for image generation, model: gemini-3-pro-image-preview
+2026-03-01 13:23:07,492 [WARNING] services.ai_providers - OpenAI format only supports 1K resolution, 4K is not available
+2026-03-01 13:23:07,547 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:07] "[35m[1mPOST /api/projects/none/materials/generate-ad HTTP/1.1[0m" 202 -
+2026-03-01 13:23:07,586 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:07] "GET /api/projects/global/tasks/d8e2b5ec-f027-4f71-a191-cfe73b722b35 HTTP/1.1" 200 -
+2026-03-01 13:23:08,822 [ERROR] services.ai_providers.image.openai_provider - Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py", line 343, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 136, in handle_request
+    raise exc
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_backends\sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 982, in request
+    response = self._client.send(
+               ^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 230, in generate_image
+    response = self.client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1192, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1014, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.
+2026-03-01 13:23:08,826 [ERROR] services.ai_service - Error generating image: Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py", line 343, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 136, in handle_request
+    raise exc
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_backends\sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 982, in request
+    response = self._client.send(
+               ^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 230, in generate_image
+    response = self.client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1192, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1014, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_service.py", line 446, in generate_image
+    return self.image_provider.generate_image(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 294, in generate_image
+    raise Exception(error_detail) from e
+Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+2026-03-01 13:23:08,840 [ERROR] services.task_manager - Task d8e2b5ec-f027-4f71-a191-cfe73b722b35 FAILED: Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http_proxy.py", line 343, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 136, in handle_request
+    raise exc
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_sync\http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_backends\sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 982, in request
+    response = self._client.send(
+               ^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "D:\anaconda3\envs\crewai\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\banana-slides\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError: [Errno 10054] ‘∂≥Ã÷˜ª˙«ø∆»πÿ±’¡À“ª∏ˆœ÷”–µƒ¡¨Ω”°£
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 230, in generate_image
+    response = self.client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1192, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\.venv\Lib\site-packages\openai\_base_client.py", line 1014, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\ai_service.py", line 446, in generate_image
+    return self.image_provider.generate_image(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\backend\services\ai_providers\image\openai_provider.py", line 294, in generate_image
+    raise Exception(error_detail) from e
+Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\banana-slides\backend\services\task_manager.py", line 703, in generate_material_image_task
+    image = ai_service.generate_image(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\banana-slides\backend\services\ai_service.py", line 456, in generate_image
+    raise Exception(error_detail) from e
+Exception: Error generating image: Exception: Error generating image with OpenAI (model=gemini-3-pro-image-preview): APIConnectionError: Connection error.
+
+2026-03-01 13:23:09,589 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:09] "GET /api/projects/global/tasks/d8e2b5ec-f027-4f71-a191-cfe73b722b35 HTTP/1.1" 200 -
+2026-03-01 13:23:14,512 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:14] "GET /api/settings HTTP/1.1" 200 -
+2026-03-01 13:23:14,517 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:14] "GET /api/settings HTTP/1.1" 200 -
+2026-03-01 13:23:22,749 [INFO] controllers.settings_controller - Updated AI_PROVIDER_FORMAT to: gemini
+2026-03-01 13:23:22,751 [INFO] controllers.settings_controller - Updated API_BASE to: https://aihubmix.com/gemini
+2026-03-01 13:23:22,751 [INFO] controllers.settings_controller - Updated API key from settings
+2026-03-01 13:23:22,751 [INFO] controllers.settings_controller - Updated image settings: 2K, 16:9
+2026-03-01 13:23:22,751 [INFO] controllers.settings_controller - Updated worker settings: desc=5, img=8
+2026-03-01 13:23:22,752 [INFO] controllers.settings_controller - Updated TEXT_MODEL to: gemini-3-flash-preview
+2026-03-01 13:23:22,752 [INFO] controllers.settings_controller - Updated IMAGE_MODEL to: gemini-3-pro-image-preview
+2026-03-01 13:23:22,752 [INFO] controllers.settings_controller - Updated MINERU_API_BASE to: https://mineru.net
+2026-03-01 13:23:22,752 [INFO] controllers.settings_controller - Updated MINERU_TOKEN from settings
+2026-03-01 13:23:22,752 [INFO] controllers.settings_controller - Updated IMAGE_CAPTION_MODEL to: gemini-3-flash-preview
+2026-03-01 13:23:22,752 [INFO] controllers.settings_controller - Settings updated successfully
+2026-03-01 13:23:22,753 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:22] "PUT /api/settings HTTP/1.1" 200 -
+2026-03-01 13:23:25,928 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:25] "GET /api/user-templates HTTP/1.1" 200 -
+2026-03-01 13:23:25,934 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:25] "GET /api/user-templates HTTP/1.1" 200 -
+2026-03-01 13:23:25,939 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:25] "GET /api/user-templates HTTP/1.1" 200 -
+2026-03-01 13:23:25,943 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:25] "GET /api/user-templates HTTP/1.1" 200 -
+2026-03-01 13:23:25,946 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:25] "[36mGET /files/user-templates/11045d39-34f5-473c-9547-298b292d5d6e/template.png HTTP/1.1[0m" 304 -
+2026-03-01 13:23:25,947 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:25] "[36mGET /files/user-templates/f75cb771-83e9-48f3-98c9-384d48d0af0d/template.jpg HTTP/1.1[0m" 304 -
+2026-03-01 13:23:39,482 [INFO] services.ai_providers - [CONFIG] Using GOOGLE_API_KEY from app.config: sk-J6QK4mg3crGJ6P0VBcA33cD434Aa427e88C63133Ef05A8C6
+2026-03-01 13:23:39,484 [INFO] services.ai_providers - [CONFIG] Using GOOGLE_API_BASE from app.config: https://aihubmix.com/gemini
+2026-03-01 13:23:39,484 [INFO] services.ai_providers - Provider config - format: gemini, api_base: https://aihubmix.com/gemini, api_key: ***
+2026-03-01 13:23:39,484 [INFO] services.ai_providers - Using Gemini format for text generation, model: gemini-3-flash-preview
+2026-03-01 13:23:39,485 [WARNING] google_genai._api_client - Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+2026-03-01 13:23:39,505 [INFO] services.ai_providers - [CONFIG] Using GOOGLE_API_KEY from app.config: sk-J6QK4mg3crGJ6P0VBcA33cD434Aa427e88C63133Ef05A8C6
+2026-03-01 13:23:39,506 [INFO] services.ai_providers - [CONFIG] Using GOOGLE_API_BASE from app.config: https://aihubmix.com/gemini
+2026-03-01 13:23:39,506 [INFO] services.ai_providers - Provider config - format: gemini, api_base: https://aihubmix.com/gemini, api_key: ***
+2026-03-01 13:23:39,506 [INFO] services.ai_providers - Using Gemini format for image generation, model: gemini-3-pro-image-preview
+2026-03-01 13:23:39,507 [WARNING] google_genai._api_client - Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+2026-03-01 13:23:39,581 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:39] "[35m[1mPOST /api/projects/none/materials/generate-ad HTTP/1.1[0m" 202 -
+2026-03-01 13:23:39,590 [INFO] google_genai.models - AFC is enabled with max remote calls: 10.
+2026-03-01 13:23:39,598 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:39] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:23:41,599 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:41] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:23:43,608 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:43] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:23:45,597 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:45] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:23:47,608 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:47] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:23:49,602 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:49] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:23:51,610 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:51] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:23:53,608 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:53] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:23:55,611 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:55] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:23:57,603 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:57] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:23:59,608 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:23:59] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:01,602 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:01] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:03,599 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:03] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:05,610 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:05] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:07,610 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:07] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:09,597 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:09] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:11,607 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:11] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:13,869 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:13] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:15,865 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:15] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:17,877 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:17] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:19,867 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:19] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:21,874 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:21] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:23,873 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:23] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:25,875 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:25] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:27,867 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:27] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:29,864 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:29] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:31,874 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:31] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:33,870 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:33] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:35,865 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:35] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:37,879 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:37] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:39,872 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:39] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:41,894 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:41] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:43,870 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:43] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:45,871 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:45] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:47,885 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:47] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:49,876 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:49] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:51,863 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:51] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:53,863 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:53] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:55,612 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:55] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:57,606 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:57] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:24:59,879 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:24:59] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:01,873 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:01] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:03,868 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:03] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:05,867 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:05] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:07,863 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:07] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:09,866 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:09] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:11,877 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:11] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:13,876 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:13] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:15,876 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:15] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:17,884 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:17] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:19,868 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:19] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:21,862 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:21] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:23,868 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:23] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:25,871 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:25] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:27,863 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:27] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:29,871 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:29] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:31,863 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:31] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:33,869 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:33] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:35,868 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:35] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:37,870 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:37] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:39,609 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:39] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:41,603 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:41] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:43,869 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:43] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:45,870 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:45] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:47,893 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:47] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:49,865 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:49] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:51,602 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:51] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:53,609 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:53] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:55,606 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:55] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:57,598 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:57] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:25:59,609 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:25:59] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:26:01,608 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:26:01] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:26:03,607 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:26:03] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:26:05,605 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:26:05] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:26:07,607 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:26:07] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:26:09,600 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:26:09] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:26:11,608 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:26:11] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:26:13,637 [INFO] werkzeug - 127.0.0.1 - - [01/Mar/2026 13:26:13] "GET /api/projects/global/tasks/b578ae58-b851-4d79-9bfc-2320aa636ef1 HTTP/1.1" 200 -
+2026-03-01 13:26:13,695 [INFO] werkzeug -  * Detected change in 'D:\\banana-slides\\backend\\services\\ai_providers\\image\\openai_provider.py', reloading

@@ -460,7 +460,7 @@ def generate_single_page_image_task(task_id: str, project_id: str, page_id: str,
             page_data = page.get_outline_content() or {}
             if page.part:
                 page_data['part'] = page.part
-            
+
             prompt = ai_service.generate_image_prompt(
                 outline, page_data, desc_text, page.order_index + 1,
                 has_material_images=has_material_images,

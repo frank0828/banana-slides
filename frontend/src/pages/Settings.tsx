@@ -94,9 +94,12 @@ const settingsSections: SectionConfig[] = [
       {
         key: 'image_model',
         label: '图像生成模型',
-        type: 'text',
-        placeholder: '留空使用环境变量配置 (如: imagen-3.0-generate-001)',
-        description: '用于生成页面图片的模型名称',
+        type: 'buttons',
+        description: 'flash 速度快、价格低，适合批量生成；pro 质量更高、延迟更大，适合精细出图。保存后全局生效。',
+        options: [
+          { value: 'gemini-3.1-flash-image-preview', label: '⚡ Flash（快速）' },
+          { value: 'gemini-3-pro-image-preview', label: '✨ Pro（高质量）' },
+        ],
       },
       {
         key: 'image_caption_model',
@@ -212,7 +215,7 @@ export const Settings: React.FC = () => {
           max_description_workers: response.data.max_description_workers || 5,
           max_image_workers: response.data.max_image_workers || 8,
           text_model: response.data.text_model || '',
-          image_model: response.data.image_model || '',
+          image_model: response.data.image_model || 'gemini-3-pro-image-preview',
           mineru_api_base: response.data.mineru_api_base || '',
           mineru_token: '',
           image_caption_model: response.data.image_caption_model || '',
@@ -281,7 +284,7 @@ export const Settings: React.FC = () => {
               max_description_workers: response.data.max_description_workers || 5,
               max_image_workers: response.data.max_image_workers || 8,
               text_model: response.data.text_model || '',
-              image_model: response.data.image_model || '',
+              image_model: response.data.image_model || 'gemini-3-pro-image-preview',
               mineru_api_base: response.data.mineru_api_base || '',
               mineru_token: '',
               image_caption_model: response.data.image_caption_model || '',

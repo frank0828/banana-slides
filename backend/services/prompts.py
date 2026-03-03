@@ -437,6 +437,7 @@ def get_ad_image_prompt(ad_config: Dict, language: str = None) -> str:
         - Use strong contrast to make the main information pop.
         - Simulate short, punchy ad copy and price tag elements.
         - Do NOT output markdown or bullet symbols — only describe the visual scene.
+        - IMPORTANT — Text on product packaging: Do NOT attempt to faithfully reproduce every character on the packaging label. Instead, render the packaging text as soft, slightly blurred or stylized lettering — the overall look and branding feel matter more than legibility of every character. This avoids AI text distortion artifacts.
         {custom_section}""")
     else:
         # ── 结构化配置模式（原有逻辑，保持兼容）────────────────────────────
@@ -468,6 +469,7 @@ def get_ad_image_prompt(ad_config: Dict, language: str = None) -> str:
         - Use strong contrast between background and main information.
         - Avoid long paragraphs; simulate short ad copy blocks and price tags.
         - Do NOT output markdown or bullet symbols, only describe the visual scene.
+        - IMPORTANT — Text on product packaging: Do NOT attempt to faithfully reproduce every character on the packaging label. Instead, render the packaging text as soft, slightly blurred or stylized lettering — the overall look and branding feel matter more than legibility of every character. This avoids AI text distortion artifacts.
         {custom_section}""")
 
     logger.debug(f"[get_ad_image_prompt] Final prompt:\n{prompt}")

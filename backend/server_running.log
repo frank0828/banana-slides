@@ -1,4 +1,158 @@
+--- Logging error ---
 Traceback (most recent call last):
-  File "D:\banana-slides\backend\app.py", line 13, in <module>
-    from flask_migrate import Migrate
-ModuleNotFoundError: No module named 'flask_migrate'
+  File "D:\anaconda3\envs\crewai\Lib\logging\__init__.py", line 1113, in emit
+    stream.write(msg + self.terminator)
+UnicodeEncodeError: 'gbk' codec can't encode character '\U0001f34c' in position 86: illegal multibyte sequence
+Call stack:
+  File "D:\banana-slides\backend\app.py", line 220, in <module>
+    logging.info(
+Message: '\n╔══════════════════════════════════════╗\n║   \U0001f34c Banana Slides API Server \U0001f34c   ║\n╚══════════════════════════════════════╝\nServer starting on: http://localhost:5000\nOutput Language: zh\nEnvironment: production\nDebug mode: False\nAPI Base URL: http://localhost:5000/api\nDatabase: sqlite:///D:\\banana-slides\\backend\\instance\\database.db\nUploads: D:\\banana-slides\\uploads'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "D:\anaconda3\envs\crewai\Lib\logging\__init__.py", line 1113, in emit
+    stream.write(msg + self.terminator)
+UnicodeEncodeError: 'gbk' codec can't encode character '\U0001f34c' in position 86: illegal multibyte sequence
+Call stack:
+  File "D:\banana-slides\backend\app.py", line 220, in <module>
+    logging.info(
+Message: '\n╔══════════════════════════════════════╗\n║   \U0001f34c Banana Slides API Server \U0001f34c   ║\n╚══════════════════════════════════════╝\nServer starting on: http://localhost:5000\nOutput Language: zh\nEnvironment: production\nDebug mode: False\nAPI Base URL: http://localhost:5000/api\nDatabase: sqlite:///D:\\banana-slides\\backend\\instance\\database.db\nUploads: D:\\banana-slides\\uploads'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "D:\anaconda3\envs\crewai\Lib\logging\__init__.py", line 1113, in emit
+    stream.write(msg + self.terminator)
+UnicodeEncodeError: 'gbk' codec can't encode character '\U0001f3a8' in position 55: illegal multibyte sequence
+Call stack:
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 1002, in _bootstrap
+    self._bootstrap_inner()
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 1045, in _bootstrap_inner
+    self.run()
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 982, in run
+    self._target(*self._args, **self._kwargs)
+  File "D:\anaconda3\envs\crewai\Lib\concurrent\futures\thread.py", line 83, in _worker
+    work_item.run()
+  File "D:\anaconda3\envs\crewai\Lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "D:\banana-slides\backend\services\task_manager.py", line 702, in generate_material_image_task
+    logger.info(f"\U0001f3a8 Generating material image with prompt: {prompt[:100]}...")
+Message: '\U0001f3a8 Generating material image with prompt:         You are a top-tier e-commerce creative director with full artistic freedom.\n        Design a...'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "D:\anaconda3\envs\crewai\Lib\logging\__init__.py", line 1113, in emit
+    stream.write(msg + self.terminator)
+UnicodeEncodeError: 'gbk' codec can't encode character '\U0001f3a8' in position 55: illegal multibyte sequence
+Call stack:
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 1002, in _bootstrap
+    self._bootstrap_inner()
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 1045, in _bootstrap_inner
+    self.run()
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 982, in run
+    self._target(*self._args, **self._kwargs)
+  File "D:\anaconda3\envs\crewai\Lib\concurrent\futures\thread.py", line 83, in _worker
+    work_item.run()
+  File "D:\anaconda3\envs\crewai\Lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "D:\banana-slides\backend\services\task_manager.py", line 702, in generate_material_image_task
+    logger.info(f"\U0001f3a8 Generating material image with prompt: {prompt[:100]}...")
+Message: '\U0001f3a8 Generating material image with prompt:         You are a top-tier e-commerce creative director with full artistic freedom.\n        Design a...'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "D:\anaconda3\envs\crewai\Lib\logging\__init__.py", line 1113, in emit
+    stream.write(msg + self.terminator)
+UnicodeEncodeError: 'gbk' codec can't encode character '\U0001f3a8' in position 55: illegal multibyte sequence
+Call stack:
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 1002, in _bootstrap
+    self._bootstrap_inner()
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 1045, in _bootstrap_inner
+    self.run()
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 982, in run
+    self._target(*self._args, **self._kwargs)
+  File "D:\anaconda3\envs\crewai\Lib\concurrent\futures\thread.py", line 83, in _worker
+    work_item.run()
+  File "D:\anaconda3\envs\crewai\Lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "D:\banana-slides\backend\services\task_manager.py", line 702, in generate_material_image_task
+    logger.info(f"\U0001f3a8 Generating material image with prompt: {prompt[:100]}...")
+Message: '\U0001f3a8 Generating material image with prompt:         You are a top-tier e-commerce creative director with full artistic freedom.\n        Design a...'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "D:\anaconda3\envs\crewai\Lib\logging\__init__.py", line 1113, in emit
+    stream.write(msg + self.terminator)
+UnicodeEncodeError: 'gbk' codec can't encode character '\U0001f3a8' in position 55: illegal multibyte sequence
+Call stack:
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 1002, in _bootstrap
+    self._bootstrap_inner()
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 1045, in _bootstrap_inner
+    self.run()
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 982, in run
+    self._target(*self._args, **self._kwargs)
+  File "D:\anaconda3\envs\crewai\Lib\concurrent\futures\thread.py", line 83, in _worker
+    work_item.run()
+  File "D:\anaconda3\envs\crewai\Lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "D:\banana-slides\backend\services\task_manager.py", line 702, in generate_material_image_task
+    logger.info(f"\U0001f3a8 Generating material image with prompt: {prompt[:100]}...")
+Message: '\U0001f3a8 Generating material image with prompt:         You are a top-tier e-commerce creative director with full artistic freedom.\n        Design a...'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "D:\anaconda3\envs\crewai\Lib\logging\__init__.py", line 1113, in emit
+    stream.write(msg + self.terminator)
+UnicodeEncodeError: 'gbk' codec can't encode character '\U0001f3a8' in position 55: illegal multibyte sequence
+Call stack:
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 1002, in _bootstrap
+    self._bootstrap_inner()
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 1045, in _bootstrap_inner
+    self.run()
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 982, in run
+    self._target(*self._args, **self._kwargs)
+  File "D:\anaconda3\envs\crewai\Lib\concurrent\futures\thread.py", line 83, in _worker
+    work_item.run()
+  File "D:\anaconda3\envs\crewai\Lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "D:\banana-slides\backend\services\task_manager.py", line 702, in generate_material_image_task
+    logger.info(f"\U0001f3a8 Generating material image with prompt: {prompt[:100]}...")
+Message: '\U0001f3a8 Generating material image with prompt:         You are a top-tier e-commerce creative director with full artistic freedom.\n        Design a...'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "D:\anaconda3\envs\crewai\Lib\logging\__init__.py", line 1113, in emit
+    stream.write(msg + self.terminator)
+UnicodeEncodeError: 'gbk' codec can't encode character '\U0001f3a8' in position 55: illegal multibyte sequence
+Call stack:
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 1002, in _bootstrap
+    self._bootstrap_inner()
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 1045, in _bootstrap_inner
+    self.run()
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 982, in run
+    self._target(*self._args, **self._kwargs)
+  File "D:\anaconda3\envs\crewai\Lib\concurrent\futures\thread.py", line 83, in _worker
+    work_item.run()
+  File "D:\anaconda3\envs\crewai\Lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "D:\banana-slides\backend\services\task_manager.py", line 702, in generate_material_image_task
+    logger.info(f"\U0001f3a8 Generating material image with prompt: {prompt[:100]}...")
+Message: '\U0001f3a8 Generating material image with prompt:         You are a top-tier e-commerce creative director with full artistic freedom.\n        Design a...'
+Arguments: ()
+Exception in thread Thread-1 (serve_forever):
+Traceback (most recent call last):
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 1045, in _bootstrap_inner
+    self.run()
+  File "D:\anaconda3\envs\crewai\Lib\threading.py", line 982, in run
+    self._target(*self._args, **self._kwargs)
+  File "D:\banana-slides\.venv\Lib\site-packages\werkzeug\serving.py", line 819, in serve_forever
+    super().serve_forever(poll_interval=poll_interval)
+  File "D:\anaconda3\envs\crewai\Lib\socketserver.py", line 233, in serve_forever
+    ready = selector.select(poll_interval)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\anaconda3\envs\crewai\Lib\selectors.py", line 323, in select
+    r, w, _ = self._select(self._readers, self._writers, [], timeout)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\anaconda3\envs\crewai\Lib\selectors.py", line 314, in _select
+    r, w, x = select.select(r, w, w, timeout)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [WinError 10038] 在一个非套接字上尝试了一个操作。
