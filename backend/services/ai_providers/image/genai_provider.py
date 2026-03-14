@@ -105,12 +105,18 @@ class GenAIImageProvider(ImageProvider):
             parts.append({"text": prompt})
             
             # 构建请求体
+            # image_config: aspect_ratio (16:9, 1:1, 9:16, 3:4, 4:3) + image_size (1K, 2K, 4K)
             payload = {
                 "contents": [{"parts": parts}],
                 "generationConfig": {
-                    "responseModalities": ["TEXT", "IMAGE"]
+                    "responseModalities": ["TEXT", "IMAGE"],
+                    "image_config": {
+                        "aspect_ratio": aspect_ratio,
+                        "image_size": resolution  # 1K, 2K, 4K
+                    }
                 }
             }
+            logger.info(f"[ImageProvider] Generating image: aspect_ratio={aspect_ratio}, image_size={resolution}")
             
             headers = {
                 "Content-Type": "application/json",

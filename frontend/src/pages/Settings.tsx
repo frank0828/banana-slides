@@ -94,12 +94,9 @@ const settingsSections: SectionConfig[] = [
       {
         key: 'image_model',
         label: '图像生成模型',
-        type: 'buttons',
-        description: 'flash 速度快、价格低，适合批量生成；pro 质量更高、延迟更大，适合精细出图。保存后全局生效。',
-        options: [
-          { value: 'gemini-3.1-flash-image-preview', label: '⚡ Flash（快速）' },
-          { value: 'gemini-3-pro-image-preview', label: '✨ Pro（高质量）' },
-        ],
+        type: 'text',
+        placeholder: 'gemini-3-pro-image-preview',
+        description: '默认使用 Pro 模型，质量更高',
       },
       {
         key: 'image_caption_model',
