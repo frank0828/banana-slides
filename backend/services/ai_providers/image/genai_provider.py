@@ -1,6 +1,8 @@
 """
 Image generation using Gemini REST API (HTTP)
 直接调用 Gemini REST API，避免 GenAI SDK 在代理环境下挂死
+
+Supports both API-key mode and compatible proxy (e.g., AiHubMix)
 """
 import logging
 import base64
@@ -8,7 +10,6 @@ import io
 import time
 import httpx
 from typing import Optional, List
-from urllib.parse import urlparse
 from PIL import Image
 from .base import ImageProvider
 
@@ -16,32 +17,50 @@ logger = logging.getLogger(__name__)
 
 
 class GenAIImageProvider(ImageProvider):
-    """Image generation using Gemini REST API (HTTP)"""
+    """Image generation using Gemini REST API (HTTP)
     
-    def __init__(self, api_key: str, api_base: str = None, model: str = "gemini-2.0-flash-exp-image-generation"):
+    Uses direct HTTP calls instead of GenAI SDK to avoid hanging issues
+    with proxy environments like AiHubMix.
+    """
+    
+    def __init__(
+        self,
+        model: str = "gemini-3-pro-image-preview",
+        api_key: str = None,
+        api_base: str = None,
+        vertexai: bool = False,  # 保留接口兼容，但 HTTP 模式不支持
+        project_id: str = None,
+        location: str = None,
+    ):
         """
         Initialize Gemini image provider
         
         Args:
+            model: Model name to use
             api_key: API key
             api_base: API base URL (e.g., https://aihubmix.com/gemini)
-            model: Model name to use
+            vertexai: Not supported in HTTP mode (kept for interface compatibility)
+            project_id: Not supported in HTTP mode
+            location: Not supported in HTTP mode
         """
+        if vertexai:
+            logger.warning("Vertex AI mode not supported in HTTP API mode, using API key mode")
+        
         self.api_key = api_key
         self.model = model
         
         # 构建 API URL
         if api_base:
-            # https://aihubmix.com/gemini -> https://aihubmix.com/gemini/v1beta/models/{model}:generateContent
             self.api_url = f"{api_base}/v1beta/models/{model}:generateContent"
         else:
-            # 默认 Google 官方 API
             self.api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
         
         # httpx 客户端：180秒超时，禁用 SSL 验证（代理环境）
         self._timeout = httpx.Timeout(180.0, connect=30.0)
         self._limits = httpx.Limits(max_keepalive_connections=0, max_connections=10)
         self._client = self._create_client()
+        
+        logger.info(f"[ImageProvider] Using HTTP API: {self.api_url}")
     
     def _create_client(self) -> httpx.Client:
         """创建新的 httpx 客户端"""
@@ -51,7 +70,6 @@ class GenAIImageProvider(ImageProvider):
             timeout=self._timeout,
             limits=self._limits,
         )
-        logger.info(f"[ImageProvider] Using HTTP API: {self.api_url}")
     
     def _image_to_base64(self, img: Image.Image) -> tuple[str, str]:
         """Convert PIL Image to base64 string"""
@@ -72,7 +90,9 @@ class GenAIImageProvider(ImageProvider):
         prompt: str,
         ref_images: Optional[List[Image.Image]] = None,
         aspect_ratio: str = "16:9",
-        resolution: str = "2K"
+        resolution: str = "2K",
+        enable_thinking: bool = True,  # 保留接口兼容，HTTP 模式暂不支持
+        thinking_budget: int = 1024
     ) -> Optional[Image.Image]:
         """
         Generate image using Gemini REST API
@@ -80,8 +100,10 @@ class GenAIImageProvider(ImageProvider):
         Args:
             prompt: The image generation prompt
             ref_images: Optional list of reference images
-            aspect_ratio: Image aspect ratio
-            resolution: Image resolution (supports "1K", "2K", "4K")
+            aspect_ratio: Image aspect ratio (16:9, 1:1, 9:16, 3:4, 4:3)
+            resolution: Image resolution (1K, 2K, 4K)
+            enable_thinking: Not supported in HTTP mode (kept for interface compatibility)
+            thinking_budget: Not supported in HTTP mode
             
         Returns:
             Generated PIL Image object, or None if failed
@@ -105,17 +127,18 @@ class GenAIImageProvider(ImageProvider):
             parts.append({"text": prompt})
             
             # 构建请求体
-            # image_config: aspect_ratio (16:9, 1:1, 9:16, 3:4, 4:3) + image_size (1K, 2K, 4K)
+            # image_config: aspect_ratio + image_size
             payload = {
                 "contents": [{"parts": parts}],
                 "generationConfig": {
                     "responseModalities": ["TEXT", "IMAGE"],
                     "image_config": {
                         "aspect_ratio": aspect_ratio,
-                        "image_size": resolution  # 1K, 2K, 4K
+                        "image_size": resolution
                     }
                 }
             }
+            
             logger.info(f"[ImageProvider] Generating image: aspect_ratio={aspect_ratio}, image_size={resolution}")
             
             headers = {
@@ -124,7 +147,6 @@ class GenAIImageProvider(ImageProvider):
             }
             
             logger.debug(f"Calling Gemini API with {len(ref_images) if ref_images else 0} reference images...")
-            logger.debug(f"Config - aspect_ratio: {aspect_ratio}, resolution: {resolution}")
             
             # 重试机制（超时/连接错误时重建客户端重试）
             last_exc = None

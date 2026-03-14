@@ -16,16 +16,22 @@ from .prompts import (
     get_outline_generation_prompt,
     get_outline_parsing_prompt,
     get_page_description_prompt,
+    get_all_descriptions_stream_prompt,
     get_image_generation_prompt,
     get_image_edit_prompt,
     get_description_to_outline_prompt,
     get_description_split_prompt,
     get_outline_refinement_prompt,
     get_descriptions_refinement_prompt,
-    get_layout_pages_prompt,
+    get_ppt_page_content_extraction_prompt,
+    get_layout_caption_prompt,
+    get_style_extraction_prompt,
+    get_outline_generation_prompt_markdown,
+    get_outline_parsing_prompt_markdown,
+    get_description_to_outline_prompt_markdown,
     get_ad_image_prompt,
 )
-from .ai_providers import get_text_provider, get_image_provider, TextProvider, ImageProvider
+from .ai_providers import get_text_provider, get_image_provider, get_caption_provider, TextProvider, ImageProvider
 from config import get_config
 
 logger = logging.getLogger(__name__)
@@ -47,15 +53,19 @@ class ProjectContext:
             self.outline_text = project_or_dict.outline_text
             self.description_text = project_or_dict.description_text
             self.creation_type = project_or_dict.creation_type or 'idea'
+            self.outline_requirements = project_or_dict.outline_requirements
+            self.description_requirements = project_or_dict.description_requirements
         else:
             # 是字典
             self.idea_prompt = project_or_dict.get('idea_prompt')
             self.outline_text = project_or_dict.get('outline_text')
             self.description_text = project_or_dict.get('description_text')
             self.creation_type = project_or_dict.get('creation_type', 'idea')
-        
+            self.outline_requirements = project_or_dict.get('outline_requirements')
+            self.description_requirements = project_or_dict.get('description_requirements')
+
         self.reference_files_content = reference_files_content or []
-    
+
     def to_dict(self) -> Dict:
         """转换为字典，方便传递"""
         return {
@@ -63,6 +73,8 @@ class ProjectContext:
             'outline_text': self.outline_text,
             'description_text': self.description_text,
             'creation_type': self.creation_type,
+            'outline_requirements': self.outline_requirements,
+            'description_requirements': self.description_requirements,
             'reference_files_content': self.reference_files_content
         }
 
@@ -70,7 +82,7 @@ class ProjectContext:
 class AIService:
     """Service for AI model interactions using pluggable providers"""
     
-    def __init__(self, text_provider: TextProvider = None, image_provider: ImageProvider = None):
+    def __init__(self, text_provider: TextProvider = None, image_provider: ImageProvider = None, caption_provider: TextProvider = None):
         """
         Initialize AI service with providers
         
@@ -90,13 +102,47 @@ class AIService:
         if has_app_context() and current_app and hasattr(current_app, "config"):
             self.text_model = current_app.config.get("TEXT_MODEL", config.TEXT_MODEL)
             self.image_model = current_app.config.get("IMAGE_MODEL", config.IMAGE_MODEL)
+            # 分离的文本和图像推理配置
+            self.enable_text_reasoning = current_app.config.get("ENABLE_TEXT_REASONING", False)
+            self.text_thinking_budget = current_app.config.get("TEXT_THINKING_BUDGET", 1024)
+            self.enable_image_reasoning = current_app.config.get("ENABLE_IMAGE_REASONING", False)
+            self.image_thinking_budget = current_app.config.get("IMAGE_THINKING_BUDGET", 1024)
         else:
             self.text_model = config.TEXT_MODEL
             self.image_model = config.IMAGE_MODEL
+            self.enable_text_reasoning = False
+            self.text_thinking_budget = 1024
+            self.enable_image_reasoning = False
+            self.image_thinking_budget = 1024
         
+        # Caption model for multimodal (image→text) tasks
+        if has_app_context() and current_app and hasattr(current_app, "config"):
+            self.caption_model = current_app.config.get("IMAGE_CAPTION_MODEL", config.IMAGE_CAPTION_MODEL)
+        else:
+            self.caption_model = config.IMAGE_CAPTION_MODEL
+
         # Use provided providers or create from factory based on AI_PROVIDER_FORMAT (from Flask config or env var)
         self.text_provider = text_provider or get_text_provider(model=self.text_model)
         self.image_provider = image_provider or get_image_provider(model=self.image_model)
+        self.caption_provider = caption_provider or get_caption_provider(model=self.caption_model)
+    
+    def _get_text_thinking_budget(self) -> int:
+        """
+        获取文本生成的思考负载
+        
+        Returns:
+            如果启用文本推理则返回配置的 budget，否则返回 0
+        """
+        return self.text_thinking_budget if self.enable_text_reasoning else 0
+    
+    def _get_image_thinking_budget(self) -> int:
+        """
+        获取图像生成的思考负载
+        
+        Returns:
+            如果启用图像推理则返回配置的 budget，否则返回 0
+        """
+        return self.image_thinking_budget if self.enable_image_reasoning else 0
     
     @staticmethod
     def extract_image_urls_from_markdown(text: str) -> List[str]:
@@ -107,7 +153,7 @@ class AIService:
             text: Markdown 文本，可能包含 ![](url) 格式的图片
             
         Returns:
-            图片 URL 列表（包括 http/https URL 和 /files/mineru/ 开头的本地路径）
+            图片 URL 列表（包括 http/https URL 和 /files/ 开头的本地路径）
         """
         if not text:
             return []
@@ -116,11 +162,11 @@ class AIService:
         pattern = r'!\[.*?\]\((.*?)\)'
         matches = re.findall(pattern, text)
         
-        # 过滤掉空字符串，支持 http/https URL 和 /files/mineru/ 开头的本地路径
+        # 过滤掉空字符串，支持 http/https URL 和 /files/ 开头的本地路径（包括 mineru、materials 等）
         urls = []
         for url in matches:
             url = url.strip()
-            if url and (url.startswith('http://') or url.startswith('https://') or url.startswith('/files/mineru/')):
+            if url and (url.startswith('http://') or url.startswith('https://') or url.startswith('/files/')):
                 urls.append(url)
         
         return urls
@@ -165,7 +211,7 @@ class AIService:
         
         Args:
             prompt: 生成提示词
-            thinking_budget: 思考预算
+            thinking_budget: 思考预算（会根据 enable_text_reasoning 配置自动调整）
             
         Returns:
             解析后的JSON对象（字典或列表）
@@ -173,8 +219,9 @@ class AIService:
         Raises:
             json.JSONDecodeError: JSON解析失败（重试3次后仍失败）
         """
-        # 调用AI生成文本
-        response_text = self.text_provider.generate_text(prompt, thinking_budget=thinking_budget)
+        # 调用AI生成文本（根据 enable_text_reasoning 配置调整 thinking_budget）
+        actual_budget = self._get_text_thinking_budget()
+        response_text = self.text_provider.generate_text(prompt, thinking_budget=actual_budget)
         
         # 清理响应文本：移除markdown代码块标记和多余空白
         cleaned_text = response_text.strip().strip("```json").strip("```").strip()
@@ -183,6 +230,54 @@ class AIService:
             return json.loads(cleaned_text)
         except json.JSONDecodeError as e:
             logger.warning(f"JSON解析失败，将重新生成。原始文本: {cleaned_text[:200]}... 错误: {str(e)}")
+            raise
+    
+    @retry(
+        stop=stop_after_attempt(3),
+        retry=retry_if_exception_type((json.JSONDecodeError, ValueError)),
+        reraise=True
+    )
+    def generate_json_with_image(self, prompt: str, image_path: str, thinking_budget: int = 1000) -> Union[Dict, List]:
+        """
+        带图片输入的JSON生成，如果解析失败则重新生成（最多重试3次）
+        
+        Args:
+            prompt: 生成提示词
+            image_path: 图片文件路径
+            thinking_budget: 思考预算（会根据 enable_text_reasoning 配置自动调整）
+            
+        Returns:
+            解析后的JSON对象（字典或列表）
+            
+        Raises:
+            json.JSONDecodeError: JSON解析失败（重试3次后仍失败）
+            ValueError: caption_provider 不支持图片输入
+        """
+        # 使用 caption_provider（支持图片输入的多模态模型）
+        actual_budget = self._get_text_thinking_budget()
+        provider = self.caption_provider
+        if hasattr(provider, 'generate_with_image'):
+            response_text = provider.generate_with_image(
+                prompt=prompt,
+                image_path=image_path,
+                thinking_budget=actual_budget
+            )
+        elif hasattr(provider, 'generate_text_with_images'):
+            response_text = provider.generate_text_with_images(
+                prompt=prompt,
+                images=[image_path],
+                thinking_budget=actual_budget
+            )
+        else:
+            raise ValueError("caption_provider 不支持图片输入")
+        
+        # 清理响应文本：移除markdown代码块标记和多余空白
+        cleaned_text = response_text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+        
+        try:
+            return json.loads(cleaned_text)
+        except json.JSONDecodeError as e:
+            logger.warning(f"JSON解析失败（带图片），将重新生成。原始文本: {cleaned_text[:200]}... 错误: {str(e)}")
             raise
     
     @staticmethod
@@ -241,6 +336,132 @@ class AIService:
         outline_prompt = get_outline_generation_prompt(project_context, language)
         outline = self.generate_json(outline_prompt, thinking_budget=1000)
         return outline
+
+    @staticmethod
+    def parse_markdown_outline(markdown: str) -> List[Dict]:
+        """
+        Parse markdown outline into structured page data.
+
+        Format:
+          # Part Name        → sets current part
+          ## Page Title       → starts a new page
+          - Point text        → adds a bullet point to current page
+
+        Returns list of dicts: [{"title": ..., "points": [...], "part": ...}, ...]
+        """
+        pages = []
+        current_part = None
+        current_page = None
+
+        for line in markdown.split('\n'):
+            stripped = line.strip()
+            if not stripped:
+                continue
+
+            if stripped.startswith('# ') and not stripped.startswith('## '):
+                # Part header
+                current_part = stripped[2:].strip()
+            elif stripped.startswith('## '):
+                # New page — flush previous
+                if current_page:
+                    pages.append(current_page)
+                current_page = {
+                    'title': stripped[3:].strip(),
+                    'points': [],
+                }
+                if current_part:
+                    current_page['part'] = current_part
+            elif stripped.startswith('- ') and current_page is not None:
+                current_page['points'].append(stripped[2:].strip())
+
+        # Flush last page
+        if current_page:
+            pages.append(current_page)
+
+        return pages
+
+    def generate_outline_stream(self, project_context: ProjectContext, language: str = None):
+        """
+        Stream outline generation, yielding each completed page as it's detected.
+
+        Yields dicts: {"title": ..., "points": [...], "part": ...}
+        """
+        creation_type = project_context.creation_type or 'idea'
+
+        if creation_type == 'outline':
+            prompt = get_outline_parsing_prompt_markdown(project_context, language)
+        elif creation_type == 'descriptions':
+            prompt = get_description_to_outline_prompt_markdown(project_context, language)
+        else:
+            prompt = get_outline_generation_prompt_markdown(project_context, language)
+
+        actual_budget = self._get_text_thinking_budget()
+        buffer = ""
+        current_part = None
+        current_page = None
+        stream_complete = False
+
+        for chunk in self.text_provider.generate_text_stream(prompt, thinking_budget=actual_budget):
+            buffer += chunk
+
+            # Process complete lines from buffer
+            while '\n' in buffer:
+                line, buffer = buffer.split('\n', 1)
+                stripped = line.strip()
+
+                if not stripped:
+                    continue
+
+                if stripped == '<!-- END -->':
+                    stream_complete = True
+                    continue
+
+                if stripped.startswith('# ') and not stripped.startswith('## '):
+                    current_part = stripped[2:].strip()
+                elif stripped.startswith('## '):
+                    # New page detected — yield previous page
+                    if current_page:
+                        yield current_page
+                    current_page = {
+                        'title': stripped[3:].strip(),
+                        'points': [],
+                    }
+                    if current_part:
+                        current_page['part'] = current_part
+                elif stripped.startswith('- ') and current_page is not None:
+                    current_page['points'].append(stripped[2:].strip())
+
+        # Process remaining buffer (same logic as main loop)
+        if buffer.strip():
+            buffer += '\n'
+            while '\n' in buffer:
+                line, buffer = buffer.split('\n', 1)
+                stripped = line.strip()
+                if not stripped:
+                    continue
+                if stripped == '<!-- END -->':
+                    stream_complete = True
+                    continue
+                if stripped.startswith('# ') and not stripped.startswith('## '):
+                    current_part = stripped[2:].strip()
+                elif stripped.startswith('## '):
+                    if current_page:
+                        yield current_page
+                    current_page = {
+                        'title': stripped[3:].strip(),
+                        'points': [],
+                    }
+                    if current_part:
+                        current_page['part'] = current_part
+                elif stripped.startswith('- ') and current_page is not None:
+                    current_page['points'].append(stripped[2:].strip())
+
+        # Yield last page
+        if current_page:
+            yield current_page
+
+        # Yield completion sentinel
+        yield {'__stream_complete__': stream_complete}
     
     def parse_outline_text(self, project_context: ProjectContext, language: str = None) -> List[Dict]:
         """
@@ -275,35 +496,230 @@ class AIService:
                 pages.append(item)
         return pages
     
-    def generate_page_description(self, project_context: ProjectContext, outline: List[Dict], 
-                                 page_outline: Dict, page_index: int, language='zh') -> str:
+    @staticmethod
+    def _parse_extra_fields(text: str, field_names: list) -> tuple:
+        """
+        从描述文本中解析额外字段，返回 (cleaned_text, extra_fields_dict)。
+
+        遍历 field_names，按出现顺序依次提取每个字段的内容。
+        两个相邻字段之间的文本属于前一个字段。
+        """
+        if not field_names:
+            return text, {}
+
+        extra_fields = {}
+        # 找到所有字段在文本中的起始位置
+        positions = []
+        for name in field_names:
+            match = re.search(rf'\n{re.escape(name)}[：:]\s*', text)
+            if match:
+                positions.append((match.start(), match.end(), name))
+
+        if not positions:
+            return text, {}
+
+        # 按位置排序
+        positions.sort(key=lambda x: x[0])
+
+        # 提取每个字段的值
+        for i, (start, end, name) in enumerate(positions):
+            if i + 1 < len(positions):
+                value = text[end:positions[i + 1][0]].strip()
+            else:
+                value = text[end:].strip()
+            # 清理 HTML 注释标记
+            value = re.sub(r'<!--.*?-->', '', value).strip()
+            if value:
+                extra_fields[name] = value
+
+        # 清理后的描述文本（截取到第一个字段之前）
+        cleaned_text = text[:positions[0][0]].strip()
+
+        return cleaned_text, extra_fields
+
+    @staticmethod
+    def _get_extra_field_names() -> list:
+        """从 Settings 读取配置的额外字段名列表。"""
+        try:
+            from models import Settings
+            settings = Settings.get_settings()
+            return settings.get_description_extra_fields()
+        except Exception:
+            logger.warning("Failed to get extra field names from settings", exc_info=True)
+            return ['视觉元素', '视觉焦点', '排版布局', '演讲者备注']
+
+    def generate_page_description(self, project_context: ProjectContext, outline: List[Dict],
+                                 page_outline: Dict, page_index: int, language='zh',
+                                 detail_level: str = 'default') -> Dict:
         """
         Generate description for a single page
         Based on demo.py gen_desc() logic
-        
+
         Args:
             project_context: 项目上下文对象，包含所有原始信息
             outline: Complete outline
             page_outline: Outline for this specific page
             page_index: Page number (1-indexed)
-        
+            detail_level: Description detail level (concise/default/detailed)
+
         Returns:
-            Text description for the page
+            Dict with 'text' and optional 'extra_fields'
         """
+        extra_field_names = self._get_extra_field_names()
         part_info = f"\nThis page belongs to: {page_outline['part']}" if 'part' in page_outline else ""
-        
+
         desc_prompt = get_page_description_prompt(
             project_context=project_context,
             outline=outline,
             page_outline=page_outline,
             page_index=page_index,
             part_info=part_info,
-            language=language
+            language=language,
+            detail_level=detail_level,
+            extra_fields=extra_field_names,
         )
-        
-        response_text = self.text_provider.generate_text(desc_prompt, thinking_budget=1000)
-        
-        return dedent(response_text)
+
+        # 根据 enable_text_reasoning 配置调整 thinking_budget
+        actual_budget = self._get_text_thinking_budget()
+        response_text = self.text_provider.generate_text(desc_prompt, thinking_budget=actual_budget)
+
+        text = dedent(response_text)
+        description_text, extra_fields = self._parse_extra_fields(text, extra_field_names)
+
+        result = {'text': description_text}
+        if extra_fields:
+            result['extra_fields'] = extra_fields
+        return result
+
+    def generate_descriptions_stream(self, project_context: ProjectContext,
+                                     outline: List[Dict], flat_pages: List[Dict],
+                                     language: str = 'zh',
+                                     detail_level: str = 'default'):
+        """
+        Stream description generation for all pages, yielding each page as it's completed.
+
+        Yields dicts: {page_index, description_text, extra_fields}
+        Final yield: {__stream_complete__: bool}
+        """
+        extra_field_names = self._get_extra_field_names()
+
+        prompt = get_all_descriptions_stream_prompt(
+            project_context=project_context,
+            outline=outline,
+            flat_pages=flat_pages,
+            language=language,
+            detail_level=detail_level,
+            extra_fields=extra_field_names,
+        )
+
+        # Build regex pattern to detect any configured extra field header
+        field_pattern = self._build_extra_field_pattern(extra_field_names)
+
+        actual_budget = self._get_text_thinking_budget()
+        buffer = ""
+        page_index = -1
+        current_lines: list = []
+        current_field: Optional[str] = None  # None = description, str = field name
+        extra_fields: Dict[str, str] = {}
+        stream_complete = False
+
+        def _build_page_result():
+            """Build result dict from accumulated state."""
+            desc_text = "\n".join(current_lines).strip()
+            result: Dict = {
+                'page_index': page_index,
+                'description_text': desc_text,
+            }
+            if extra_fields:
+                result['extra_fields'] = dict(extra_fields)
+            return result
+
+        def _reset_page_state():
+            nonlocal current_lines, current_field, extra_fields
+            current_lines = []
+            current_field = None
+            extra_fields = {}
+
+        def _process_line(line: str, stripped: str):
+            nonlocal page_index, current_field, stream_complete
+
+            if stripped == '<!-- BEGIN -->':
+                if page_index < 0:
+                    page_index = 0
+                return 'continue'
+
+            if stripped == '<!-- END -->':
+                stream_complete = True
+                return 'continue'
+
+            if stripped == '<!-- PAGE_END -->':
+                if page_index >= 0 and (current_lines or extra_fields):
+                    return 'yield_page'
+                return 'continue'
+
+            if page_index < 0:
+                return 'continue'
+
+            # Check for extra field header
+            if field_pattern:
+                field_match = field_pattern.match(stripped)
+                if field_match:
+                    field_name = field_match.group(1)
+                    current_field = field_name
+                    value = field_match.group(2).strip()
+                    if value:
+                        extra_fields[field_name] = value
+                    return 'continue'
+
+            if not stripped:
+                return 'continue'
+
+            if current_field:
+                # Append to current extra field (multi-line)
+                if current_field in extra_fields:
+                    extra_fields[current_field] += "\n" + stripped
+                else:
+                    extra_fields[current_field] = stripped
+            else:
+                current_lines.append(line.rstrip())
+            return 'continue'
+
+        for chunk in self.text_provider.generate_text_stream(prompt, thinking_budget=actual_budget):
+            buffer += chunk
+
+            while '\n' in buffer:
+                line, buffer = buffer.split('\n', 1)
+                stripped = line.strip()
+                action = _process_line(line, stripped)
+
+                if action == 'yield_page':
+                    yield _build_page_result()
+                    _reset_page_state()
+                    page_index += 1
+
+        # Process remaining buffer
+        if buffer.strip():
+            for line in buffer.split('\n'):
+                stripped = line.strip()
+                action = _process_line(line, stripped)
+                if action == 'yield_page':
+                    yield _build_page_result()
+                    _reset_page_state()
+                    page_index += 1
+
+        # Yield last page if not yet yielded
+        if page_index >= 0 and current_lines:
+            yield _build_page_result()
+
+        yield {'__stream_complete__': stream_complete}
+
+    @staticmethod
+    def _build_extra_field_pattern(field_names: list):
+        """Build a compiled regex pattern that matches any extra field header."""
+        if not field_names:
+            return None
+        escaped = '|'.join(re.escape(name) for name in field_names)
+        return re.compile(rf'^({escaped})[：:]\s*(.*)')
     
     def generate_outline_text(self, outline: List[Dict]) -> str:
         """
@@ -319,11 +735,13 @@ class AIService:
         result = "\n".join(text_parts)
         return dedent(result)
     
-    def generate_image_prompt(self, outline: List[Dict], page: Dict, 
-                            page_desc: str, page_index: int, 
+    def generate_image_prompt(self, outline: List[Dict], page: Dict,
+                            page_desc: str, page_index: int,
                             has_material_images: bool = False,
                             extra_requirements: Optional[str] = None,
-                            language='zh') -> str:
+                            language='zh',
+                            has_template: bool = True,
+                            aspect_ratio: str = "16:9") -> str:
         """
         Generate image generation prompt for a page
         Based on demo.py gen_prompts()
@@ -335,6 +753,8 @@ class AIService:
             page_index: Page number (1-indexed)
             has_material_images: 是否有素材图片（从项目描述中提取的图片）
             extra_requirements: Optional extra requirements to apply to all pages
+            language: Output language
+            has_template: 是否有模板图片（False表示无模板图模式）
         
         Returns:
             Image generation prompt
@@ -357,7 +777,10 @@ class AIService:
             current_section=current_section,
             has_material_images=has_material_images,
             extra_requirements=extra_requirements,
-            language=language
+            language=language,
+            has_template=has_template,
+            page_index=page_index,
+            aspect_ratio=aspect_ratio
         )
         
         return prompt
@@ -374,7 +797,7 @@ class AIService:
             图片生成 prompt 字符串
         """
         return get_ad_image_prompt(ad_config, language)
-
+    
     def generate_image(self, prompt: str, ref_image_path: Optional[str] = None, 
                       aspect_ratio: str = "16:9", resolution: str = "2K",
                       additional_ref_images: Optional[List[Union[str, Image.Image]]] = None) -> Optional[Image.Image]:
@@ -437,17 +860,33 @@ class AIService:
                                 logger.debug(f"Loaded MinerU image from local path: {local_path}")
                             else:
                                 logger.warning(f"MinerU image file not found (with prefix matching): {ref_img}, skipping...")
+                        elif ref_img.startswith('/files/'):
+                            # 通用 /files/ 路径（materials、项目文件等），转换为文件系统路径
+                            upload_folder = get_config().UPLOAD_FOLDER
+                            relative_path = ref_img[len('/files/'):].lstrip('/')
+                            local_path = os.path.abspath(os.path.join(upload_folder, relative_path))
+                            if not local_path.startswith(os.path.abspath(upload_folder)):
+                                logger.warning(f"Path traversal attempt blocked: {ref_img}, skipping...")
+                            elif os.path.exists(local_path):
+                                ref_images.append(Image.open(local_path))
+                                logger.debug(f"Loaded image from local path: {local_path}")
+                            else:
+                                logger.warning(f"Local file not found: {local_path} (from {ref_img}), skipping...")
                         else:
                             logger.warning(f"Invalid image reference: {ref_img}, skipping...")
             
             logger.debug(f"Calling image provider for generation with {len(ref_images)} reference images...")
+            logger.debug(f"Enable image reasoning/thinking: {self.enable_image_reasoning}, budget: {self._get_image_thinking_budget()}")
             
             # 使用 image_provider 生成图片
+            # 根据 enable_image_reasoning 配置控制图像生成的思考模式
             return self.image_provider.generate_image(
                 prompt=prompt,
                 ref_images=ref_images if ref_images else None,
                 aspect_ratio=aspect_ratio,
-                resolution=resolution
+                resolution=resolution,
+                enable_thinking=self.enable_image_reasoning,
+                thinking_budget=self._get_image_thinking_budget()
             )
             
         except Exception as e:
@@ -570,219 +1009,64 @@ class AIService:
             language=language
         )
         descriptions = self.generate_json(refinement_prompt, thinking_budget=1000)
-        
+
         # 确保返回的是字符串列表
         if isinstance(descriptions, list):
             return [str(desc) for desc in descriptions]
         else:
             raise ValueError("Expected a list of page descriptions, but got: " + str(type(descriptions)))
-    
-    def parse_layout_pages(self, project_context: ProjectContext, language='zh') -> Dict:
-        """
-        直接排版模式：解析用户输入的完整页面内容，切分为各页但不修改文字
-        优先使用规则分页（识别 --- 分隔符和 # 标题），没有明确分隔符时才使用AI
-        
-        Args:
-            project_context: 项目上下文对象，包含所有原始信息
-        
-        Returns:
-            Dict with 'pages' list, each containing title, points, and description
-        """
-        layout_text = project_context.description_text or ""
-        
-        # 尝试使用规则分页
-        rule_based_pages = self._parse_layout_by_rules(layout_text)
-        
-        if rule_based_pages:
-            logger.info(f"使用规则分页成功，识别到 {len(rule_based_pages)} 个页面")
-            return {'pages': rule_based_pages}
-        
-        # 规则分页失败，使用AI
-        logger.info("未检测到明确分隔符，使用AI进行分页")
-        parse_prompt = get_layout_pages_prompt(project_context, language)
-        result = self.generate_json(parse_prompt, thinking_budget=1000)
-        
-        # 验证返回格式
-        if not isinstance(result, dict) or 'pages' not in result:
-            raise ValueError("Expected a dict with 'pages' key, but got: " + str(type(result)))
-        
-        return result
-    
-    @staticmethod
-    def _parse_layout_by_rules(text: str) -> Optional[List[Dict]]:
-        """
-        使用规则解析直接排版内容，识别 Markdown 分隔符和标题层级
-        
-        优先级：
-        1. --- 分隔符（最高优先级，明确的页面分隔）
-        2. # 一级标题（作为页面标题）
-        3. ## 二级标题（如果没有一级标题，则使用二级标题）
-        
-        Args:
-            text: 用户输入的文本内容
-        
-        Returns:
-            页面列表，如果无法识别则返回 None
-        """
-        if not text or not text.strip():
-            return None
-        
-        lines = text.split('\n')
-        pages = []
-        current_page_lines = []
-        current_title = None
-        has_explicit_separator = False
-        
-        # 检查是否有 --- 分隔符
-        for line in lines:
-            stripped = line.strip()
-            if stripped == '---' or stripped == '___' or stripped == '***':
-                has_explicit_separator = True
-                break
-        
-        if has_explicit_separator:
-            # 使用 --- 分隔符进行分页
-            logger.info("检测到 Markdown 分隔符 (---/___/***)，使用分隔符分页")
-            for line in lines:
-                stripped = line.strip()
-                if stripped in ['---', '___', '***']:
-                    # 遇到分隔符，保存当前页面
-                    if current_page_lines:
-                        page = AIService._extract_page_from_lines(current_page_lines, current_title)
-                        if page:
-                            pages.append(page)
-                        current_page_lines = []
-                        current_title = None
-                else:
-                    current_page_lines.append(line)
-                    # 提取标题
-                    if stripped.startswith('#'):
-                        title_match = re.match(r'^#+\s+(.+)$', stripped)
-                        if title_match and not current_title:
-                            current_title = title_match.group(1).strip()
-            
-            # 保存最后一个页面
-            if current_page_lines:
-                page = AIService._extract_page_from_lines(current_page_lines, current_title)
-                if page:
-                    pages.append(page)
-        else:
-            # 检查是否有标题层级
-            has_h1 = any(line.strip().startswith('# ') for line in lines)
-            has_h2 = any(line.strip().startswith('## ') for line in lines)
-            
-            if has_h1:
-                # 使用 # 一级标题作为页面分隔
-                logger.info("检测到一级标题 (#)，使用一级标题分页")
-                for line in lines:
-                    stripped = line.strip()
-                    if stripped.startswith('# '):
-                        # 遇到一级标题，保存当前页面
-                        if current_page_lines:
-                            page = AIService._extract_page_from_lines(current_page_lines, current_title)
-                            if page:
-                                pages.append(page)
-                            current_page_lines = []
-                        # 提取新标题
-                        current_title = stripped[2:].strip()
-                    current_page_lines.append(line)
-                
-                # 保存最后一个页面
-                if current_page_lines:
-                    page = AIService._extract_page_from_lines(current_page_lines, current_title)
-                    if page:
-                        pages.append(page)
-            elif has_h2:
-                # 使用 ## 二级标题作为页面分隔
-                logger.info("检测到二级标题 (##)，使用二级标题分页")
-                for line in lines:
-                    stripped = line.strip()
-                    if stripped.startswith('## '):
-                        # 遇到二级标题，保存当前页面
-                        if current_page_lines:
-                            page = AIService._extract_page_from_lines(current_page_lines, current_title)
-                            if page:
-                                pages.append(page)
-                            current_page_lines = []
-                        # 提取新标题
-                        current_title = stripped[3:].strip()
-                    current_page_lines.append(line)
-                
-                # 保存最后一个页面
-                if current_page_lines:
-                    page = AIService._extract_page_from_lines(current_page_lines, current_title)
-                    if page:
-                        pages.append(page)
-            else:
-                # 没有明确的分隔符或标题，返回 None 让 AI 处理
-                logger.info("未检测到明确的分隔符或标题层级")
-                return None
-        
-        # 如果成功识别到至少一个页面，返回结果
-        if pages:
-            return pages
-        
-        return None
-    
-    @staticmethod
-    def _extract_page_from_lines(lines: List[str], title: Optional[str]) -> Optional[Dict]:
-        """
-        从行列表中提取页面信息
-        
-        Args:
-            lines: 页面内容的行列表
-            title: 页面标题（可选）
-        
-        Returns:
-            页面字典，包含 title, points, description
-        """
-        # 移除空行
-        content_lines = [line for line in lines if line.strip()]
-        
-        if not content_lines:
-            return None
-        
-        # 重新组合内容
-        full_content = '\n'.join(lines).strip()
-        
-        # 提取标题（如果没有提供）
-        if not title:
-            for line in content_lines:
-                stripped = line.strip()
-                # 尝试从一级或二级标题提取
-                if stripped.startswith('# '):
-                    title = stripped[2:].strip()
-                    break
-                elif stripped.startswith('## '):
-                    title = stripped[3:].strip()
-                    break
-        
-        # 如果还是没有标题，使用第一行非空内容或默认标题
-        if not title:
-            title = content_lines[0].strip()[:50] if content_lines else "未命名页面"
-        
-        # 提取要点（bullet points）
-        points = []
-        for line in content_lines:
-            stripped = line.strip()
-            # 匹配各种列表格式
-            if stripped.startswith('-') or stripped.startswith('*') or stripped.startswith('•'):
-                point = stripped[1:].strip()
-                if point:
-                    points.append(point)
-            elif re.match(r'^\d+[.)、]\s+', stripped):
-                # 数字列表：1. 或 1) 或 1、
-                point = re.sub(r'^\d+[.)、]\s+', '', stripped)
-                if point:
-                    points.append(point)
-        
-        # 构建描述内容（保持原格式）
-        description = f"页面标题：{title}\n\n页面文字：\n{full_content}"
-        
-        return {
-            'title': title,
-            'points': points if points else ['原文内容'],
-            'description': description
-        }
 
+    def extract_page_content(self, markdown_text: str, language: str = 'zh') -> Dict:
+        """
+        从 fileparser 解析出的 markdown 文本中提取页面结构化内容
+
+        Args:
+            markdown_text: 单页 PDF 解析出的 markdown 文本
+            language: 输出语言
+
+        Returns:
+            Dict with keys: title, points, description
+        """
+        prompt = get_ppt_page_content_extraction_prompt(markdown_text, language=language)
+        result = self.generate_json(prompt, thinking_budget=1000)
+
+        # Ensure required fields exist
+        if not isinstance(result, dict):
+            raise ValueError(f"Expected dict, got {type(result)}")
+
+        result.setdefault('title', '')
+        result.setdefault('points', [])
+        result.setdefault('description', '')
+
+        return result
+
+    def _generate_text_from_image(self, prompt: str, image_path: str) -> str:
+        """Helper to generate text from a prompt and an image, using caption_provider."""
+        actual_budget = self._get_text_thinking_budget()
+        provider = self.caption_provider
+
+        if hasattr(provider, 'generate_with_image'):
+            response_text = provider.generate_with_image(
+                prompt=prompt,
+                image_path=image_path,
+                thinking_budget=actual_budget
+            )
+        elif hasattr(provider, 'generate_text_with_images'):
+            response_text = provider.generate_text_with_images(
+                prompt=prompt,
+                images=[image_path],
+                thinking_budget=actual_budget
+            )
+        else:
+            raise ValueError("caption_provider 不支持图片输入")
+
+        return response_text.strip()
+
+    def generate_layout_caption(self, image_path: str) -> str:
+        """使用 caption model 描述 PPT 页面的排版布局"""
+        return self._generate_text_from_image(get_layout_caption_prompt(), image_path)
+
+    def extract_style_description(self, image_path: str) -> str:
+        """从图片中提取风格描述"""
+        return self._generate_text_from_image(get_style_extraction_prompt(), image_path)
 
