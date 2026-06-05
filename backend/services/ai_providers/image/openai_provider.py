@@ -35,6 +35,9 @@ class OpenAIImageProvider(ImageProvider):
     The provider will try multiple parameter formats to maximize compatibility.
     """
     
+    # 使用 images.generate() 接口的模型前缀（DALL-E / gpt-image 系列）
+    _IMAGES_API_MODELS = ('dall-e', 'gpt-image')
+
     def __init__(self, api_key: str, api_base: str = None, model: str = "gemini-3-pro-image-preview"):
         """
         Initialize OpenAI image provider
@@ -52,6 +55,8 @@ class OpenAIImageProvider(ImageProvider):
         )
         self.api_base = api_base or ""
         self.model = model
+        # 是否使用 images.generate() 接口（DALL-E / gpt-image 系列）
+        self._use_images_api = any(model.lower().startswith(p) for p in self._IMAGES_API_MODELS)
     
     def _encode_image_to_base64(self, image: Image.Image) -> str:
         """
@@ -105,12 +110,80 @@ class OpenAIImageProvider(ImageProvider):
         
         return extra_body
 
+    def _aspect_ratio_to_size(self, aspect_ratio: str) -> str:
+        """Convert aspect_ratio string to gpt-image-2 size parameter."""
+        mapping = {
+            '1:1': '1024x1024',
+            '16:9': '1536x1024',
+            '9:16': '1024x1536',
+            '4:3': '1536x1024',
+            '3:4': '1024x1536',
+            '3:2': '1536x1024',
+            '2:3': '1024x1536',
+        }
+        return mapping.get(aspect_ratio, 'auto')
+
+    def _generate_with_images_api(
+        self,
+        prompt: str,
+        ref_images: Optional[List[Image.Image]] = None,
+        aspect_ratio: str = '16:9',
+        resolution: str = '2K',
+    ) -> Optional[Image.Image]:
+        """Use client.images.generate() for DALL-E / gpt-image-2 style models."""
+        size = self._aspect_ratio_to_size(aspect_ratio)
+        quality = 'high' if resolution in ('4K', '2K') else 'auto'
+
+        logger.info(f'[ImageProvider] gpt-image API: aspect_ratio={aspect_ratio}, size={size}, quality={quality}')
+
+        # gpt-image-2 支持将参考图作为输入（通过 edits 接口）
+        # 如果有参考图，使用 images.edit()；否则使用 images.generate()
+        if ref_images:
+            import io
+            # 将第一张参考图转为 PNG bytes
+            buf = io.BytesIO()
+            ref_img = ref_images[0]
+            if ref_img.mode not in ('RGB', 'RGBA'):
+                ref_img = ref_img.convert('RGBA')
+            ref_img.save(buf, format='PNG')
+            buf.seek(0)
+            response = self.client.images.edit(
+                model=self.model,
+                image=('reference.png', buf, 'image/png'),
+                prompt=prompt,
+                size=size,
+                n=1,
+            )
+        else:
+            response = self.client.images.generate(
+                model=self.model,
+                prompt=prompt,
+                n=1,
+                size=size,
+                quality=quality,
+                response_format='b64_json',
+            )
+
+        # 解析返回的图片
+        item = response.data[0]
+        # b64_json 格式
+        if getattr(item, 'b64_json', None):
+            img_bytes = base64.b64decode(item.b64_json)
+            return Image.open(BytesIO(img_bytes)).convert('RGB')
+        # url 格式
+        if getattr(item, 'url', None):
+            resp = requests.get(item.url, timeout=60)
+            resp.raise_for_status()
+            return Image.open(BytesIO(resp.content)).convert('RGB')
+
+        raise ValueError('No image data in gpt-image API response')
+
     def generate_image(
         self,
         prompt: str,
         ref_images: Optional[List[Image.Image]] = None,
-        aspect_ratio: str = "16:9",
-        resolution: str = "2K",
+        aspect_ratio: str = '16:9',
+        resolution: str = '2K',
         enable_thinking: bool = False,
         thinking_budget: int = 0
     ) -> Optional[Image.Image]:
@@ -137,6 +210,15 @@ class OpenAIImageProvider(ImageProvider):
             Generated PIL Image object, or None if failed
         """
         try:
+            # gpt-image-2 / DALL-E 系列使用专用接口
+            if self._use_images_api:
+                return self._generate_with_images_api(
+                    prompt=prompt,
+                    ref_images=ref_images,
+                    aspect_ratio=aspect_ratio,
+                    resolution=resolution,
+                )
+
             # Build message content
             content = []
             

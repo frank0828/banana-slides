@@ -427,7 +427,7 @@ def generate_ad_material_image(project_id):
             if not project:
                 return not_found('Project')
 
-        ai_service = AIService()
+        ai_service = get_ai_service()
         file_service = FileService(current_app.config['UPLOAD_FOLDER'])
 
         # 创建临时目录（保持与普通素材接口相同的生命周期）
@@ -518,6 +518,519 @@ def generate_ad_material_image(project_id):
         except Exception:
             pass
         return error_response('AI_SERVICE_ERROR', str(e), 503)
+
+
+@material_bp.route('/<project_id>/materials/generate-poster', methods=['POST'])
+def generate_poster_image(project_id):
+    """
+    POST /api/projects/{project_id}/materials/generate-poster - Generate a poster image.
+
+    Request (multipart/form-data):
+        config (JSON string): { theme, style, extra_description, layout: { aspect_ratio, resolution }, model }
+        ref_images (optional files): Reference images for the poster
+    """
+    try:
+        import json as _json
+
+        # Parse project
+        if project_id != 'none':
+            project = Project.query.get(project_id)
+            if not project:
+                return not_found('Project')
+        else:
+            project = None
+            project_id = None
+
+        # Parse config from form data
+        config_str = request.form.get('config', '{}')
+        try:
+            config = _json.loads(config_str)
+        except Exception:
+            return bad_request('config must be valid JSON')
+
+        theme = (config.get('theme') or '').strip()
+        if not theme:
+            return bad_request('theme is required')
+
+        layout = config.get('layout') or {}
+        aspect_ratio = layout.get('aspect_ratio') or current_app.config.get('DEFAULT_ASPECT_RATIO', '16:9')
+        resolution = layout.get('resolution') or current_app.config.get('DEFAULT_RESOLUTION', '2K')
+        model_name = (config.get('model') or '').strip()
+
+        task_project_id = project_id if project_id is not None else 'global'
+
+        # Generate prompt
+        from services.prompts import get_poster_prompt
+        prompt = get_poster_prompt(config)
+
+        # Get AI service
+        ai_service = get_ai_service()
+        file_service = FileService(current_app.config['UPLOAD_FOLDER'])
+
+        # Save reference images to temp dir
+        temp_dir = Path(tempfile.mkdtemp(dir=current_app.config['UPLOAD_FOLDER']))
+        temp_dir_str = str(temp_dir)
+        ref_path_str = None
+        additional_ref_list = []
+
+        ref_files = request.files.getlist('ref_images') or []
+        for i, rf in enumerate(ref_files):
+            if rf and rf.filename:
+                rf_name = secure_filename(rf.filename) or f'ref_{i}.jpg'
+                rf_save = temp_dir / rf_name
+                rf.save(str(rf_save))
+                if i == 0:
+                    ref_path_str = str(rf_save)
+                else:
+                    additional_ref_list.append(str(rf_save))
+
+        # Create async task
+        task = Task(
+            project_id=task_project_id,
+            task_type='GENERATE_MATERIAL',
+            status='PENDING'
+        )
+        task.set_progress({'total': 1, 'completed': 0, 'failed': 0})
+        db.session.add(task)
+        db.session.commit()
+
+        app = current_app._get_current_object()
+
+        # If a specific model is requested (e.g. gpt-image-2), use generate_image_with_model
+        # Otherwise use default provider via generate_material_image_task
+        if model_name and model_name != 'gemini':
+            # Custom model path: submit a poster-specific task
+            task_manager.submit_task(
+                task.id,
+                _generate_poster_with_model_task,
+                task_project_id,
+                prompt,
+                model_name,
+                ai_service,
+                file_service,
+                ref_path_str,
+                additional_ref_list if additional_ref_list else None,
+                aspect_ratio,
+                resolution,
+                temp_dir_str,
+                app
+            )
+        else:
+            # Default model: reuse existing material generation task
+            task_manager.submit_task(
+                task.id,
+                generate_material_image_task,
+                task_project_id,
+                prompt,
+                ai_service,
+                file_service,
+                ref_path_str,
+                additional_ref_list if additional_ref_list else None,
+                aspect_ratio,
+                resolution,
+                temp_dir_str,
+                app
+            )
+
+        return success_response({'task_id': task.id, 'status': 'PENDING'}, status_code=202)
+
+    except Exception as e:
+        db.session.rollback()
+        try:
+            if 'temp_dir' in locals() and temp_dir.exists():
+                shutil.rmtree(temp_dir, ignore_errors=True)
+        except Exception:
+            pass
+        return error_response('AI_SERVICE_ERROR', str(e), 503)
+
+
+@material_bp.route('/<project_id>/materials/generate-free', methods=['POST'])
+def generate_free_image(project_id):
+    """
+    POST /api/projects/{project_id}/materials/generate-free
+    自由生图模式：用户 prompt 原样传给模型，不附加任何 system prompt。
+    其他设置（模型/比例/分辨率/参考图）与海报模式一致。
+
+    Request (multipart/form-data):
+        config (JSON): { prompt, layout: { aspect_ratio, resolution }, model }
+        ref_images (optional files): 参考图
+    """
+    try:
+        import json as _json
+
+        if project_id != 'none':
+            project = Project.query.get(project_id)
+            if not project:
+                return not_found('Project')
+        else:
+            project = None
+            project_id = None
+
+        config_str = request.form.get('config', '{}')
+        try:
+            config = _json.loads(config_str)
+        except Exception:
+            return bad_request('config must be valid JSON')
+
+        prompt = (config.get('prompt') or '').strip()
+        if not prompt:
+            return bad_request('prompt is required')
+
+        layout = config.get('layout') or {}
+        aspect_ratio = layout.get('aspect_ratio') or current_app.config.get('DEFAULT_ASPECT_RATIO', '16:9')
+        resolution = layout.get('resolution') or current_app.config.get('DEFAULT_RESOLUTION', '2K')
+        model_name = (config.get('model') or '').strip()
+
+        task_project_id = project_id if project_id is not None else 'global'
+
+        ai_service = get_ai_service()
+        file_service = FileService(current_app.config['UPLOAD_FOLDER'])
+
+        # 保存参考图到临时目录
+        temp_dir = Path(tempfile.mkdtemp(dir=current_app.config['UPLOAD_FOLDER']))
+        temp_dir_str = str(temp_dir)
+        ref_path_str = None
+        additional_ref_list = []
+
+        ref_files = request.files.getlist('ref_images') or []
+        for i, rf in enumerate(ref_files):
+            if rf and rf.filename:
+                rf_name = secure_filename(rf.filename) or f'ref_{i}.jpg'
+                rf_save = temp_dir / rf_name
+                rf.save(str(rf_save))
+                if i == 0:
+                    ref_path_str = str(rf_save)
+                else:
+                    additional_ref_list.append(str(rf_save))
+
+        task = Task(
+            project_id=task_project_id,
+            task_type='GENERATE_MATERIAL',
+            status='PENDING'
+        )
+        task.set_progress({'total': 1, 'completed': 0, 'failed': 0})
+        db.session.add(task)
+        db.session.commit()
+
+        app = current_app._get_current_object()
+
+        # 复用海报任务函数（它接受任意 prompt，不再附加 system prompt）
+        if model_name and model_name != 'gemini':
+            task_manager.submit_task(
+                task.id,
+                _generate_poster_with_model_task,
+                task_project_id,
+                prompt,
+                model_name,
+                ai_service,
+                file_service,
+                ref_path_str,
+                additional_ref_list if additional_ref_list else None,
+                aspect_ratio,
+                resolution,
+                temp_dir_str,
+                app
+            )
+        else:
+            task_manager.submit_task(
+                task.id,
+                generate_material_image_task,
+                task_project_id,
+                prompt,
+                ai_service,
+                file_service,
+                ref_path_str,
+                additional_ref_list if additional_ref_list else None,
+                aspect_ratio,
+                resolution,
+                temp_dir_str,
+                app
+            )
+
+        return success_response({'task_id': task.id, 'status': 'PENDING'}, status_code=202)
+
+    except Exception as e:
+        db.session.rollback()
+        try:
+            if 'temp_dir' in locals() and temp_dir.exists():
+                shutil.rmtree(temp_dir, ignore_errors=True)
+        except Exception:
+            pass
+        return error_response('AI_SERVICE_ERROR', str(e), 503)
+
+
+def _aspect_ratio_to_gpt_image_size(aspect_ratio: str, resolution: str = '2K') -> str:
+    """
+    Map (aspect_ratio, resolution) to a gpt-image-2 supported size string.
+
+    gpt-image-2 size constraints:
+      - Max edge length ≤ 3840px
+      - Both edges must be multiples of 16
+      - Long:short ratio ≤ 3:1
+      - Total pixels in [655,360, 8,294,400]
+
+    Tiers (long edge target):
+      1K → 1536, 2K → 2048, 4K → 3840 (auto-downscaled when exceeding pixel cap)
+    """
+    res = (resolution or '2K').upper()
+
+    # 4K tier: long edge up to 3840, but some ratios get capped by total-pixel limit
+    mapping_4k = {
+        '1:1':  '2880x2880',   # 8,294,400 ≤ cap
+        '16:9': '3840x2160',   # 8,294,400 = cap
+        '9:16': '2160x3840',
+        '4:3':  '2880x2160',
+        '3:4':  '2160x2880',
+        '3:2':  '3072x2048',
+        '2:3':  '2048x3072',
+        '21:9': '3840x1648',
+        '5:4':  '3072x2448',
+    }
+    mapping_2k = {
+        '1:1':  '2048x2048',
+        '16:9': '2048x1152',
+        '9:16': '1152x2048',
+        '4:3':  '2048x1536',
+        '3:4':  '1536x2048',
+        '3:2':  '2048x1360',
+        '2:3':  '1360x2048',
+        '21:9': '2048x880',
+        '5:4':  '2048x1632',
+    }
+    mapping_1k = {
+        '1:1':  '1024x1024',
+        '16:9': '1536x1024',  # not exact 16:9 but closest 1K landscape
+        '9:16': '1024x1536',
+        '4:3':  '1536x1152',
+        '3:4':  '1152x1536',
+        '3:2':  '1536x1024',
+        '2:3':  '1024x1536',
+        '21:9': '1536x656',
+        '5:4':  '1280x1024',
+    }
+
+    if res == '4K':
+        return mapping_4k.get(aspect_ratio, '3840x2160')
+    if res == '1K':
+        return mapping_1k.get(aspect_ratio, '1536x1024')
+    # default 2K
+    return mapping_2k.get(aspect_ratio, '2048x1152')
+
+
+def _direct_call_gpt_image(prompt: str, model_name: str, api_key: str, api_base: str,
+                            aspect_ratio: str, resolution: str, ref_paths: list,
+                            timeout: float = 600.0):
+    """
+    Direct HTTP call to OpenAI-compatible images API (e.g. AiHubMix /v1/images/generations).
+    Bypasses OpenAI SDK to give us full visibility into request/response for debugging.
+    Returns PIL.Image on success, raises Exception with full server response body on failure.
+    """
+    import requests
+    import base64 as _b64
+    from io import BytesIO as _BIO
+    from PIL import Image as _PIL
+
+    # Normalize api_base: strip trailing slash and any '/v1' or '/gemini' suffix duplication
+    base = (api_base or 'https://aihubmix.com/v1').rstrip('/')
+    # If base ends with /gemini (Google route), force switch to /v1 for OpenAI-style endpoint
+    if base.endswith('/gemini'):
+        base = base[: -len('/gemini')] + '/v1'
+    if not base.endswith('/v1'):
+        # If a custom proxy is given without /v1, append it to be safe
+        if '/v1' not in base:
+            base = base + '/v1'
+
+    size = _aspect_ratio_to_gpt_image_size(aspect_ratio, resolution)
+    quality = 'high' if str(resolution).upper() in ('2K', '4K') else 'auto'
+
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+    }
+
+    masked_key = (api_key[:8] + '...' + api_key[-4:]) if api_key and len(api_key) > 12 else '***'
+    logger.info(f'[gpt-image direct] model={model_name}, base={base}, key={masked_key}, size={size}, quality={quality}, ref_count={len(ref_paths) if ref_paths else 0}')
+
+    # Bypass system HTTP_PROXY / HTTPS_PROXY env vars: aihubmix.com is directly accessible
+    # from CN networks; routing through a local proxy (e.g. V2Ray) often gets dropped.
+    no_proxy = {'http': None, 'https': None}
+    session = requests.Session()
+    session.trust_env = False  # ignore HTTP_PROXY / HTTPS_PROXY / NO_PROXY env
+
+    if ref_paths:
+        # Use /images/edits with multipart
+        url = f'{base}/images/edits'
+        files = []
+        for i, p in enumerate(ref_paths):
+            files.append(('image[]', (f'ref_{i}.png', open(p, 'rb'), 'image/png')))
+        data = {
+            'model': model_name,
+            'prompt': prompt,
+            'n': '1',
+            'size': size,
+        }
+        try:
+            resp = session.post(url, headers=headers, data=data, files=files, timeout=timeout, proxies=no_proxy)
+        finally:
+            for _, fobj in files:
+                try:
+                    fobj[1].close()
+                except Exception:
+                    pass
+    else:
+        url = f'{base}/images/generations'
+        payload = {
+            'model': model_name,
+            'prompt': prompt,
+            'n': 1,
+            'size': size,
+            'quality': quality,
+        }
+        headers['Content-Type'] = 'application/json'
+        resp = session.post(url, headers=headers, json=payload, timeout=timeout, proxies=no_proxy)
+
+    logger.info(f'[gpt-image direct] response status={resp.status_code}')
+
+    if resp.status_code != 200:
+        # Surface the entire server response so the user can see the real cause
+        body = resp.text[:2000]
+        raise Exception(f'gpt-image API error {resp.status_code}: {body}')
+
+    result = resp.json()
+    item = (result.get('data') or [{}])[0]
+
+    if item.get('b64_json'):
+        img_bytes = _b64.b64decode(item['b64_json'])
+        return _PIL.open(_BIO(img_bytes)).convert('RGB')
+    if item.get('url'):
+        r2 = requests.get(item['url'], timeout=120)
+        r2.raise_for_status()
+        return _PIL.open(_BIO(r2.content)).convert('RGB')
+
+    raise Exception(f'gpt-image API returned no image data: {str(result)[:500]}')
+
+
+def _generate_poster_with_model_task(
+    task_id, project_id, prompt, model_name, ai_service, file_service,
+    ref_path_str, additional_ref_list, aspect_ratio, resolution,
+    temp_dir_str, app
+):
+    """Background task: generate poster image with a specific model."""
+    import os
+    with app.app_context():
+        try:
+            # Collect all ref image paths
+            ref_paths = []
+            if ref_path_str:
+                ref_paths.append(ref_path_str)
+            if additional_ref_list:
+                ref_paths.extend(additional_ref_list)
+
+            model_lower = (model_name or '').lower()
+            is_gpt_image = model_lower.startswith('gpt-image') or model_lower.startswith('dall-e')
+
+            if is_gpt_image:
+                # Helper: filter out invalid placeholders / empty values
+                def _valid(v):
+                    if not v:
+                        return False
+                    s = str(v).strip()
+                    if not s:
+                        return False
+                    bad = {'your-api-key-here', 'your_api_key_here', 'sk-xxx', 'changeme'}
+                    if s.lower() in bad or s.lower().startswith('your-api-key'):
+                        return False
+                    return True
+
+                # Pick the first valid key. AiHubMix uses one key for both Gemini & OpenAI routes,
+                # so GOOGLE_API_KEY (the real key in .env) works for /v1/images/generations as well.
+                api_key = ''
+                for cand in (
+                    os.getenv('OPENAI_API_KEY'),
+                    current_app.config.get('OPENAI_API_KEY'),
+                    os.getenv('GOOGLE_API_KEY'),
+                    current_app.config.get('GOOGLE_API_KEY'),
+                ):
+                    if _valid(cand):
+                        api_key = cand
+                        break
+
+                # Force AiHubMix /v1 endpoint for gpt-image regardless of OPENAI_API_BASE,
+                # because the env may point to api.openai.com which has no AiHubMix proxy.
+                env_base = os.getenv('OPENAI_API_BASE', '').strip()
+                if env_base and 'aihubmix' in env_base.lower():
+                    api_base = env_base
+                else:
+                    api_base = 'https://aihubmix.com/v1'
+
+                if not api_key:
+                    raise Exception('No valid API key found for gpt-image (OPENAI_API_KEY / GOOGLE_API_KEY)')
+
+                from config import get_config
+                timeout = float(getattr(get_config(), 'OPENAI_TIMEOUT', 600.0) or 600.0)
+                # gpt-image-2 generation can take 5-10 minutes; enforce a minimum 600s
+                if timeout < 600.0:
+                    timeout = 600.0
+
+                image = _direct_call_gpt_image(
+                    prompt=prompt,
+                    model_name=model_name,
+                    api_key=api_key,
+                    api_base=api_base,
+                    aspect_ratio=aspect_ratio,
+                    resolution=resolution,
+                    ref_paths=ref_paths,
+                    timeout=timeout,
+                )
+            else:
+                image = ai_service.generate_image_with_model(
+                    prompt=prompt,
+                    model_name=model_name,
+                    ref_image_paths=ref_paths if ref_paths else None,
+                    aspect_ratio=aspect_ratio,
+                    resolution=resolution,
+                )
+
+            if image is None:
+                raise Exception('Image generation returned None')
+
+            # Save the generated image as a material (mirror generate_material_image_task)
+            from pathlib import Path as _Path
+            from datetime import datetime as _dt
+            actual_project_id = None if (project_id == 'global' or project_id is None) else project_id
+            relative_path = file_service.save_material_image(image, actual_project_id)
+            filename = _Path(relative_path).name
+            image_url = file_service.get_file_url(actual_project_id, 'materials', filename)
+
+            material = Material(
+                project_id=actual_project_id,
+                filename=filename,
+                relative_path=relative_path,
+                url=image_url,
+            )
+            db.session.add(material)
+
+            # Mark task as completed
+            task = Task.query.get(task_id)
+            if task:
+                task.status = 'COMPLETED'
+                task.completed_at = _dt.utcnow()
+                task.set_progress({
+                    'total': 1,
+                    'completed': 1,
+                    'failed': 0,
+                    'material_id': material.id,
+                    'image_url': image_url,
+                })
+            db.session.commit()
+            logger.info(f'✅ Poster Task {task_id} COMPLETED - Material {material.id} generated via {model_name}')
+            return material
+        finally:
+            # Clean up temp directory
+            try:
+                if temp_dir_str:
+                    shutil.rmtree(temp_dir_str, ignore_errors=True)
+            except Exception:
+                pass
 
 
 @material_bp.route('/<project_id>/materials', methods=['GET'])

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Image as ImageIcon, ImagePlus, Upload, X, FolderOpen, Sparkles, Wand2 } from 'lucide-react';
 import { Modal, Textarea, Button, useToast, MaterialSelector, Skeleton } from '@/components/shared';
-import { generateMaterialImage, generateAdMaterialImage, getTaskStatus } from '@/api/endpoints';
+import { generateMaterialImage, generateAdMaterialImage, generatePosterImage, generateFreeImage, getTaskStatus } from '@/api/endpoints';
 import { getImageUrl } from '@/api/client';
 import { materialUrlToFile } from './MaterialSelector';
 import type { Material } from '@/api/endpoints';
@@ -13,7 +13,7 @@ interface MaterialGeneratorModalProps {
   onClose: () => void;
 }
 
-type GeneratorMode = 'raw' | 'ecom';
+type GeneratorMode = 'raw' | 'ecom' | 'poster' | 'free';
 
 /**
  * 素材生成模态卡片
@@ -56,6 +56,22 @@ export const MaterialGeneratorModal: React.FC<MaterialGeneratorModalProps> = ({
   const [customPrompt, setCustomPrompt] = useState('');
   const [productImages, setProductImages] = useState<File[]>([]);
   const [styleRefImages, setStyleRefImages] = useState<File[]>([]);
+
+  // 海报模式
+  const [posterTheme, setPosterTheme] = useState('');
+  const [posterStyle, setPosterStyle] = useState('business');
+  const [posterExtra, setPosterExtra] = useState('');
+  const [posterModel, setPosterModel] = useState('gemini');
+  const [posterRefImages, setPosterRefImages] = useState<File[]>([]);
+  const [posterAspectRatio, setPosterAspectRatio] = useState('16:9');
+  const [posterResolution, setPosterResolution] = useState('2K');
+
+  // 自由生图模式（无任何内置 system prompt）
+  const [freePrompt, setFreePrompt] = useState('');
+  const [freeModel, setFreeModel] = useState('gemini');
+  const [freeRefImages, setFreeRefImages] = useState<File[]>([]);
+  const [freeAspectRatio, setFreeAspectRatio] = useState('16:9');
+  const [freeResolution, setFreeResolution] = useState('2K');
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -247,6 +263,82 @@ export const MaterialGeneratorModal: React.FC<MaterialGeneratorModalProps> = ({
       return;
     }
 
+    // 海报模式
+    if (mode === 'poster') {
+      if (!posterTheme.trim()) {
+        show({ message: '请输入海报主题', type: 'error' });
+        return;
+      }
+      setIsGenerating(true);
+      setPreviewUrl(null);
+      try {
+        const targetProjectId = projectId || 'none';
+        const config = {
+          theme: posterTheme.trim(),
+          style: posterStyle,
+          extra_description: posterExtra.trim() || undefined,
+          layout: { aspect_ratio: posterAspectRatio, resolution: posterResolution },
+          model: posterModel === 'gemini' ? '' : posterModel,
+        };
+        const resp = await generatePosterImage(
+          targetProjectId,
+          config,
+          posterRefImages.length > 0 ? posterRefImages : undefined,
+        );
+        const taskId = resp.data?.task_id;
+        if (taskId) {
+          await pollMaterialTask(taskId);
+        } else {
+          show({ message: '海报生成失败：未返回task ID', type: 'error' });
+          setIsGenerating(false);
+        }
+      } catch (error: any) {
+        show({
+          message: error?.response?.data?.error?.message || error.message || '海报生成失败',
+          type: 'error',
+        });
+        setIsGenerating(false);
+      }
+      return;
+    }
+
+    // 自由生图模式：用户 prompt 原样发送，不附加任何 system prompt
+    if (mode === 'free') {
+      if (!freePrompt.trim()) {
+        show({ message: '请输入提示词', type: 'error' });
+        return;
+      }
+      setIsGenerating(true);
+      setPreviewUrl(null);
+      try {
+        const targetProjectId = projectId || 'none';
+        const config = {
+          prompt: freePrompt.trim(),
+          layout: { aspect_ratio: freeAspectRatio, resolution: freeResolution },
+          model: freeModel === 'gemini' ? '' : freeModel,
+        };
+        const resp = await generateFreeImage(
+          targetProjectId,
+          config,
+          freeRefImages.length > 0 ? freeRefImages : undefined,
+        );
+        const taskId = resp.data?.task_id;
+        if (taskId) {
+          await pollMaterialTask(taskId);
+        } else {
+          show({ message: '生成失败：未返回task ID', type: 'error' });
+          setIsGenerating(false);
+        }
+      } catch (error: any) {
+        show({
+          message: error?.response?.data?.error?.message || error.message || '生成失败',
+          type: 'error',
+        });
+        setIsGenerating(false);
+      }
+      return;
+    }
+
     // 电商广告模式
     if (!productName.trim()) {
       show({ message: '请填写商品名称', type: 'error' });
@@ -365,10 +457,28 @@ export const MaterialGeneratorModal: React.FC<MaterialGeneratorModalProps> = ({
           >
             电商广告模式
           </button>
+          <button
+            type="button"
+            className={`px-3 py-1 rounded-full transition-colors ${
+              mode === 'poster' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+            }`}
+            onClick={() => setMode('poster')}
+          >
+            海报模式
+          </button>
+          <button
+            type="button"
+            className={`px-3 py-1.5 rounded-md text-sm transition ${
+              mode === 'free' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+            }`}
+            onClick={() => setMode('free')}
+          >
+            自由生图
+          </button>
         </div>
 
         {/* 通用模式：提示词输入 */}
-        {mode === 'raw' ? (
+        {mode === 'raw' && (
           <Textarea
             label="提示词（原样发送给文生图模型）"
             placeholder="例如：蓝紫色渐变背景，带几何图形和科技感线条，用于科技主题标题页..."
@@ -376,8 +486,10 @@ export const MaterialGeneratorModal: React.FC<MaterialGeneratorModalProps> = ({
             onChange={(e) => setPrompt(e.target.value)}
             rows={3}
           />
-        ) : (
-          /* 电商广告模式：结构化配置 */
+        )}
+
+        {/* 电商广告模式：结构化配置 */}
+        {mode === 'ecom' && (
           <div className="space-y-4">
             {/* ── AI 自由发挥开关 ── */}
             <div
@@ -782,6 +894,209 @@ export const MaterialGeneratorModal: React.FC<MaterialGeneratorModalProps> = ({
           </div>
         )}
 
+        {/* 海报模式 */}
+        {mode === 'poster' && (
+          <div className="space-y-4">
+            {/* 主题/文案 */}
+            <Textarea
+              label="海报主题 / 文案"
+              placeholder="例如：2026年度科技创新峰会\n或：新品发布会邀请函..."
+              value={posterTheme}
+              onChange={(e) => setPosterTheme(e.target.value)}
+              rows={2}
+            />
+
+            {/* 风格 + 模型选择 */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">视觉风格</label>
+                <select
+                  className="w-full border rounded-md px-2 py-1.5 text-sm"
+                  value={posterStyle}
+                  onChange={(e) => setPosterStyle(e.target.value)}
+                >
+                  <option value="business">商务简约</option>
+                  <option value="festival">节日庆典</option>
+                  <option value="tech">科技未来</option>
+                  <option value="retro">文艺复古</option>
+                  <option value="minimal">极简</option>
+                  <option value="nature">自然清新</option>
+                  <option value="luxury">高端奢华</option>
+                  <option value="custom">自定义</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">图片模型</label>
+                <select
+                  className="w-full border rounded-md px-2 py-1.5 text-sm"
+                  value={posterModel}
+                  onChange={(e) => setPosterModel(e.target.value)}
+                >
+                  <option value="gemini">Gemini (默认)</option>
+                  <option value="gpt-image-2">gpt-image-2</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">图片比例</label>
+                <select
+                  className="w-full border rounded-md px-2 py-1.5 text-sm"
+                  value={posterAspectRatio}
+                  onChange={(e) => setPosterAspectRatio(e.target.value)}
+                >
+                  <option value="16:9">16:9 (横版)</option>
+                  <option value="9:16">9:16 (竖版)</option>
+                  <option value="4:3">4:3</option>
+                  <option value="3:4">3:4</option>
+                  <option value="1:1">1:1 (方形)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">图片尺寸</label>
+                <select
+                  className="w-full border rounded-md px-2 py-1.5 text-sm"
+                  value={posterResolution}
+                  onChange={(e) => setPosterResolution(e.target.value)}
+                >
+                  <option value="1K">1K</option>
+                  <option value="2K">2K (默认)</option>
+                  <option value="4K">4K (高清)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* 补充描述 */}
+            <Textarea
+              label="补充描述（可选）"
+              placeholder="对设计方向的额外要求，如配色、元素、氛围等..."
+              value={posterExtra}
+              onChange={(e) => setPosterExtra(e.target.value)}
+              rows={2}
+            />
+
+            {/* 参考图上传 */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">参考图（可选，AI 会参考其风格/构图）</label>
+              <div className="flex gap-2 flex-wrap">
+                {posterRefImages.map((file, idx) => (
+                  <div key={idx} className="relative w-16 h-16 rounded border overflow-hidden">
+                    <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      className="absolute top-0 right-0 bg-black/50 text-white rounded-bl p-0.5"
+                      onClick={() => setPosterRefImages(prev => prev.filter((_, i) => i !== idx))}
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                ))}
+                {posterRefImages.length < 4 && (
+                  <label className="w-16 h-16 border-2 border-dashed rounded flex items-center justify-center cursor-pointer hover:border-gray-400 text-gray-400">
+                    <Upload size={16} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        if (files.length > 0) setPosterRefImages(prev => [...prev, ...files].slice(0, 4));
+                        e.target.value = '';
+                      }}
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {mode === 'free' && (
+          <div className="space-y-4">
+            {/* 提示词（原样发送，无内置 system prompt） */}
+            <Textarea
+              label="提示词（原样发送给模型，不附加任何系统提示）"
+              placeholder="完整描述你想要的图片：主体、构图、风格、配色、氛围、细节……"
+              value={freePrompt}
+              onChange={(e) => setFreePrompt(e.target.value)}
+              rows={5}
+            />
+
+            {/* 模型 + 比例 + 尺寸 */}
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">图片模型</label>
+                <select
+                  className="w-full border rounded-md px-2 py-1.5 text-sm"
+                  value={freeModel}
+                  onChange={(e) => setFreeModel(e.target.value)}
+                >
+                  <option value="gemini">Gemini (默认)</option>
+                  <option value="gpt-image-2">gpt-image-2</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">图片比例</label>
+                <select
+                  className="w-full border rounded-md px-2 py-1.5 text-sm"
+                  value={freeAspectRatio}
+                  onChange={(e) => setFreeAspectRatio(e.target.value)}
+                >
+                  <option value="16:9">16:9 (横版)</option>
+                  <option value="9:16">9:16 (竖版)</option>
+                  <option value="4:3">4:3</option>
+                  <option value="3:4">3:4</option>
+                  <option value="1:1">1:1 (方形)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">图片尺寸</label>
+                <select
+                  className="w-full border rounded-md px-2 py-1.5 text-sm"
+                  value={freeResolution}
+                  onChange={(e) => setFreeResolution(e.target.value)}
+                >
+                  <option value="1K">1K</option>
+                  <option value="2K">2K (默认)</option>
+                  <option value="4K">4K (高清)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* 参考图上传 */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">参考图（可选）</label>
+              <div className="flex gap-2 flex-wrap">
+                {freeRefImages.map((file, idx) => (
+                  <div key={idx} className="relative w-16 h-16 rounded border overflow-hidden">
+                    <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      className="absolute top-0 right-0 bg-black/50 text-white rounded-bl p-0.5"
+                      onClick={() => setFreeRefImages(prev => prev.filter((_, i) => i !== idx))}
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                ))}
+                {freeRefImages.length < 4 && (
+                  <label className="w-16 h-16 border-2 border-dashed rounded flex items-center justify-center cursor-pointer hover:border-gray-400 text-gray-400">
+                    <Upload size={16} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        if (files.length > 0) setFreeRefImages(prev => [...prev, ...files].slice(0, 4));
+                        e.target.value = '';
+                      }}
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-end gap-3 pt-2">
           <Button variant="ghost" onClick={handleClose} disabled={isGenerating}>
             关闭
@@ -791,13 +1106,20 @@ export const MaterialGeneratorModal: React.FC<MaterialGeneratorModalProps> = ({
             onClick={handleGenerate}
             disabled={
               isGenerating ||
-              (mode === 'raw' ? !prompt.trim() : !productName.trim())
+              (mode === 'raw' && !prompt.trim()) ||
+              (mode === 'ecom' && !productName.trim()) ||
+              (mode === 'poster' && !posterTheme.trim()) ||
+              (mode === 'free' && !freePrompt.trim())
             }
           >
             {isGenerating
               ? '生成中...'
               : mode === 'raw'
               ? '生成素材'
+              : mode === 'poster'
+              ? '生成海报'
+              : mode === 'free'
+              ? '生成图片'
               : aiCreativeMode
               ? '✨ AI 自由发挥生成'
               : '生成电商广告图'}

@@ -726,6 +726,78 @@ export const generateMaterialImage = async (
 };
 
 /**
+ * 生成电商广告图素材（异步任务）
+ */
+export const generateAdMaterialImage = async (
+  projectId: string,
+  config: Record<string, any>,
+  productImages?: File[],
+  styleRefImages?: File[]
+): Promise<ApiResponse<{ task_id: string; status: string }>> => {
+  const formData = new FormData();
+  formData.append('config', JSON.stringify(config));
+  if (productImages && productImages.length > 0) {
+    productImages.forEach((file) => {
+      formData.append('product_images', file);
+    });
+  }
+  if (styleRefImages && styleRefImages.length > 0) {
+    styleRefImages.forEach((file) => {
+      formData.append('style_ref_images', file);
+    });
+  }
+  const response = await apiClient.post<ApiResponse<{ task_id: string; status: string }>>(
+    `/api/projects/${projectId}/materials/generate-ad`,
+    formData
+  );
+  return response.data;
+};
+
+/**
+ * 生成海报图片（异步任务）
+ */
+export const generatePosterImage = async (
+  projectId: string,
+  config: Record<string, any>,
+  refImages?: File[]
+): Promise<ApiResponse<{ task_id: string; status: string }>> => {
+  const formData = new FormData();
+  formData.append('config', JSON.stringify(config));
+  if (refImages && refImages.length > 0) {
+    refImages.forEach((file) => {
+      formData.append('ref_images', file);
+    });
+  }
+  const response = await apiClient.post<ApiResponse<{ task_id: string; status: string }>>(
+    `/api/projects/${projectId}/materials/generate-poster`,
+    formData
+  );
+  return response.data;
+};
+
+/**
+ * 自由生图模式：用户 prompt 原样传给模型，不附加任何 system prompt
+ */
+export const generateFreeImage = async (
+  projectId: string,
+  config: Record<string, any>,
+  refImages?: File[]
+): Promise<ApiResponse<{ task_id: string; status: string }>> => {
+  const formData = new FormData();
+  formData.append('config', JSON.stringify(config));
+  if (refImages && refImages.length > 0) {
+    refImages.forEach((file) => {
+      formData.append('ref_images', file);
+    });
+  }
+  const response = await apiClient.post<ApiResponse<{ task_id: string; status: string }>>(
+    `/api/projects/${projectId}/materials/generate-free`,
+    formData
+  );
+  return response.data;
+};
+
+/**
  * 素材信息接口
  */
 export interface Material {

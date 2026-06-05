@@ -1162,3 +1162,73 @@ def get_ad_image_prompt(ad_config: Dict, language: str = None) -> str:
     logger.debug(f"[get_ad_image_prompt] Final prompt:\n{prompt}")
     return prompt
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 7. 海报生成 Prompts
+# ─────────────────────────────────────────────────────────────────────────────
+
+_POSTER_STYLE_PRESETS = {
+    'business': 'Clean corporate style with professional typography, subtle gradients, and elegant layout',
+    'festival': 'Festive and celebratory atmosphere with warm colors, decorative elements, and joyful energy',
+    'tech': 'Futuristic technology aesthetic with geometric shapes, neon accents, dark backgrounds, and modern sans-serif fonts',
+    'retro': 'Vintage artistic style with warm tones, textured backgrounds, classic typography, and nostalgic charm',
+    'minimal': 'Ultra-minimalist design with generous whitespace, single accent color, and refined typography',
+    'nature': 'Organic natural style with fresh green tones, flowing shapes, and earthy textures',
+    'luxury': 'Premium luxury feel with gold/black palette, elegant serif fonts, and sophisticated composition',
+}
+
+
+def get_poster_prompt(config: Dict, language: str = None) -> str:
+    """
+    为海报模式生成图片描述 prompt
+
+    Args:
+        config: 包含 theme/style/extra_description/layout 的配置字典
+        language: 输出语言
+    """
+    from textwrap import dedent as _dedent
+
+    theme = (config.get('theme') or '').strip()
+    style_key = (config.get('style') or '').strip().lower()
+    extra_description = (config.get('extra_description') or '').strip()
+    layout = config.get('layout') or {}
+    aspect_ratio = (layout.get('aspect_ratio') or '16:9').strip()
+
+    # 风格描述
+    if style_key in _POSTER_STYLE_PRESETS:
+        style_desc = _POSTER_STYLE_PRESETS[style_key]
+    elif style_key and style_key != 'custom':
+        style_desc = style_key  # 用户直接输入的风格描述
+    else:
+        style_desc = 'Professional and visually striking'
+
+    # 额外描述部分
+    extra_section = ''
+    if extra_description:
+        extra_section = f'\nAdditional creative direction from the user:\n{extra_description}'
+
+    prompt = _dedent(f"""\
+        You are a world-class poster designer. Create a stunning, publication-ready poster image.
+
+        Design brief:
+        - Theme / Copy: {theme}
+        - Visual style: {style_desc}
+        - Aspect ratio: {aspect_ratio}
+
+        Design principles:
+        - Strong visual hierarchy: the main message must be instantly readable
+        - Bold, impactful typography that complements the theme
+        - Harmonious color palette that evokes the intended mood
+        - Professional composition with balanced whitespace
+        - All text in the poster should be clearly legible and spelled correctly
+        - The poster should look print-ready and high-quality
+        {extra_section}
+
+        IMPORTANT:
+        - Output ONLY the visual scene description for image generation
+        - Do NOT include markdown, bullet points, or meta-commentary
+        - Render any text on the poster as part of the visual design""")
+
+    logger.debug(f"[get_poster_prompt] Final prompt:\n{prompt}")
+    return prompt
+

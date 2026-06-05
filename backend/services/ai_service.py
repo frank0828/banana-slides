@@ -893,7 +893,67 @@ class AIService:
             error_detail = f"Error generating image: {type(e).__name__}: {str(e)}"
             logger.error(error_detail, exc_info=True)
             raise Exception(error_detail) from e
-    
+
+    def generate_image_with_model(
+        self,
+        prompt: str,
+        model_name: str,
+        ref_image_paths: Optional[List[str]] = None,
+        aspect_ratio: str = "16:9",
+        resolution: str = "2K"
+    ) -> Optional[Image.Image]:
+        """
+        Generate image using a specified model (may differ from the default image_provider).
+
+        If model_name matches the current provider's model, reuses it.
+        Otherwise creates a temporary provider based on model name prefix.
+        """
+        # Reuse default provider if model matches
+        if model_name == self.image_model:
+            return self.generate_image(
+                prompt=prompt,
+                ref_image_paths=ref_image_paths,
+                aspect_ratio=aspect_ratio,
+                resolution=resolution,
+            )
+
+        # Create a one-off provider for the requested model
+        from .ai_providers import get_image_provider
+        from .ai_providers.image.openai_provider import OpenAIImageProvider
+
+        model_lower = model_name.lower()
+        if model_lower.startswith('gpt-image') or model_lower.startswith('dall-e'):
+            # OpenAI images API path
+            try:
+                from flask import current_app
+                # 优先用 IMAGE_API_KEY，其次用环境变量 GOOGLE_API_KEY（AiHubMix key），最后才用 app.config
+                api_key = (current_app.config.get('IMAGE_API_KEY')
+                           or os.getenv('GOOGLE_API_KEY', '')
+                           or current_app.config.get('GOOGLE_API_KEY', ''))
+                api_base = (current_app.config.get('IMAGE_API_BASE')
+                            or os.getenv('OPENAI_API_BASE', 'https://aihubmix.com/v1'))
+            except RuntimeError:
+                api_key = os.getenv('OPENAI_API_KEY', '')
+                api_base = os.getenv('OPENAI_API_BASE', 'https://aihubmix.com/v1')
+            provider = OpenAIImageProvider(api_key=api_key, api_base=api_base, model=model_name)
+        else:
+            # Default: create via factory (Gemini path)
+            provider = get_image_provider(model=model_name)
+
+        # Load reference images
+        ref_images: List[Image.Image] = []
+        if ref_image_paths:
+            for p in ref_image_paths:
+                if p and os.path.exists(p):
+                    ref_images.append(Image.open(p))
+
+        return provider.generate_image(
+            prompt=prompt,
+            ref_images=ref_images if ref_images else None,
+            aspect_ratio=aspect_ratio,
+            resolution=resolution,
+        )
+
     def edit_image(self, prompt: str, current_image_path: str,
                   aspect_ratio: str = "16:9", resolution: str = "2K",
                   original_description: str = None,
