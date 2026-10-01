@@ -819,16 +819,22 @@ def _aspect_ratio_to_gpt_image_size(aspect_ratio: str, resolution: str = '2K') -
 
 def _direct_call_gpt_image(prompt: str, model_name: str, api_key: str, api_base: str,
                             aspect_ratio: str, resolution: str, ref_paths: list,
-                            timeout: float = 600.0):
+                            timeout: float = 300.0):
     """
     Direct HTTP call to OpenAI-compatible images API (e.g. AiHubMix /v1/images/generations).
     Bypasses OpenAI SDK to give us full visibility into request/response for debugging.
+
+    timeout 为总时长硬上限的下限值：真实硬上限会被抬到不低于
+    「上传窗口 + 读窗口 + 余量」，因为提前放弃会把服务端已出图（已计费）的结果丢掉。
+    线程池包装整个请求，仅用于兜住"socket 超时也没能结束请求"的挂死情况。
+
     Returns PIL.Image on success, raises Exception with full server response body on failure.
     """
     import requests
     import base64 as _b64
     from io import BytesIO as _BIO
     from PIL import Image as _PIL
+    from concurrent.futures import ThreadPoolExecutor, TimeoutError as _FutureTimeout
 
     # Normalize api_base: strip trailing slash and any '/v1' or '/gemini' suffix duplication
     base = (api_base or 'https://aihubmix.com/v1').rstrip('/')
@@ -841,52 +847,177 @@ def _direct_call_gpt_image(prompt: str, model_name: str, api_key: str, api_base:
             base = base + '/v1'
 
     size = _aspect_ratio_to_gpt_image_size(aspect_ratio, resolution)
-    quality = 'high' if str(resolution).upper() in ('2K', '4K') else 'auto'
+    # quality 不用 'high'：实测 high 无论尺寸大小都需 >60s 出图，
+    # 而链路（代理/网关）存在约 60s 空闲超时，请求必被断开。
+    # medium 出 4K 约 54s、2K 约 41s，均在窗口内且画质足够。
+    quality = 'medium' if str(resolution).upper() in ('2K', '4K') else 'auto'
 
     headers = {
         'Authorization': f'Bearer {api_key}',
     }
 
     masked_key = (api_key[:8] + '...' + api_key[-4:]) if api_key and len(api_key) > 12 else '***'
-    logger.info(f'[gpt-image direct] model={model_name}, base={base}, key={masked_key}, size={size}, quality={quality}, ref_count={len(ref_paths) if ref_paths else 0}')
+    logger.info(f'[gpt-image direct] model={model_name}, base={base}, key={masked_key}, size={size}, quality={quality}, ref_count={len(ref_paths) if ref_paths else 0}, hard_timeout={timeout}s')
 
-    # Bypass system HTTP_PROXY / HTTPS_PROXY env vars: aihubmix.com is directly accessible
-    # from CN networks; routing through a local proxy (e.g. V2Ray) often gets dropped.
-    no_proxy = {'http': None, 'https': None}
-    session = requests.Session()
-    session.trust_env = False  # ignore HTTP_PROXY / HTTPS_PROXY / NO_PROXY env
+    # 自动探测网络：直连可用则直连；直连超时则回退系统代理（V2Ray 等）
+    from utils.net_utils import get_requests_proxies
 
-    if ref_paths:
-        # Use /images/edits with multipart
-        url = f'{base}/images/edits'
-        files = []
-        for i, p in enumerate(ref_paths):
-            files.append(('image[]', (f'ref_{i}.png', open(p, 'rb'), 'image/png')))
-        data = {
-            'model': model_name,
-            'prompt': prompt,
-            'n': '1',
-            'size': size,
-        }
+    # socket 级超时 (connect, read)：
+    # - 第一个值不只管 TCP 连接：urllib3 在发送请求体期间把 socket 超时设为 connect_timeout
+    #   （connectionpool.py 中 conn.timeout = timeout_obj.connect_timeout 在 conn.request 之前，
+    #   发完才改成 read_timeout）。带参考图走 /images/edits 时要上传数 MB multipart，
+    #   30s 一旦遇到代理上传方向卡顿就抛 "The write operation timed out"。
+    # - 第二个值是读超时：gpt-image 出图前服务器不回任何字节，这段静默必须扛住。
+    #   实测数据（多次）：所有成功都在 20~150s 内返回；所有失败都是"服务端卡死、
+    #   连接开着但永不吐字节"，会一直挂到上限。既然没有任何成功超过 150s，
+    #   读窗口设 240s 足以覆盖真结果，又能让必然失败的挂死请求快速失败（4min 而非 15min）。
+    #   注意：失败是上游 gpt-image /images/edits 的间歇性卡死，客户端超时改不动它。
+    UPLOAD_WINDOW = 180
+    READ_WINDOW = 240
+    sock_timeout = (UPLOAD_WINDOW, READ_WINDOW)
+
+    # 总时长硬上限只作"线程真的挂死"的最后兜底，必须严格大于 上传窗口 + 读窗口。
+    # 否则会出现最烧钱的情况：上传耗时挤占预算 → 硬上限先到 → 我们放弃并报超时，
+    # 而服务端其实已经把图出完（钱已经扣了），结果被直接丢掉。
+    # 参考图越大上传越久，这个坑越容易踩，所以硬上限按 socket 预算推导而非写死。
+    hard_cap = max(float(timeout), UPLOAD_WINDOW + READ_WINDOW + 30)
+    if hard_cap != float(timeout):
+        logger.info(f'[gpt-image direct] 总时长硬上限由 {timeout}s 提升至 {hard_cap}s '
+                    f'（避免在服务端已出图/已计费时提前放弃）')
+
+    # gpt-image-2 的 /images/edits 对单张输入图有实战上限约 1.5MB：
+    # 超过后服务端解码耗时非线性增长，表现为连接"挂着"永不返回
+    # （实测本项目：单张 6.4MB × 2 张 → 900 秒零响应）。
+    # 注意：这里只重新编码（PNG→WebP），绝不改动像素尺寸——
+    # 输出分辨率由 size 参数单独决定，与输入图体积无关。
+    MAX_REF_BYTES = 1_500_000
+
+    def _encode_ref_for_upload(path):
+        """把参考图压到 MAX_REF_BYTES 以内，仅靠换编码，像素尺寸保持不变。
+
+        Returns (bytes, mime, filename, note)
+        """
+        orig_bytes = Path(path).stat().st_size
+        suffix = Path(path).suffix.lower().lstrip('.') or 'png'
+
+        if orig_bytes <= MAX_REF_BYTES:
+            mime = {'png': 'image/png', 'webp': 'image/webp'}.get(suffix, 'image/jpeg')
+            with open(path, 'rb') as f:
+                return f.read(), mime, f'ref.{suffix}', f'原样上传 {orig_bytes / 1048576:.2f}MB'
+
+        img = _PIL.open(path)
+        w, h = img.size
+        if img.mode not in ('RGB', 'RGBA'):
+            img = img.convert('RGB')
+
+        payload = None
+        used_q = None
+        for q in (92, 88, 84, 80, 75, 70, 65, 60, 55, 50):
+            buf = _BIO()
+            img.save(buf, format='WEBP', quality=q, method=4)
+            payload = buf.getvalue()
+            used_q = q
+            if len(payload) <= MAX_REF_BYTES:
+                break
+
+        note = (f'{orig_bytes / 1048576:.2f}MB -> {len(payload) / 1048576:.2f}MB '
+                f'(WebP q{used_q})，像素 {w}x{h} 未改变')
+        if len(payload) > MAX_REF_BYTES:
+            note += '，注意：最低画质仍超 1.5MB'
+        return payload, 'image/webp', 'ref.webp', note
+
+    def _do_request(proxies):
+        session = requests.Session()
+        session.trust_env = False  # ignore HTTP_PROXY / HTTPS_PROXY / NO_PROXY env
+        _t0 = time.time()
+        if ref_paths:
+            # Use /images/edits with multipart
+            url = f'{base}/images/edits'
+            files = []
+            total_bytes = 0
+            for i, p in enumerate(ref_paths):
+                payload_bytes, mime, fname, note = _encode_ref_for_upload(p)
+                total_bytes += len(payload_bytes)
+                logger.info(f'[gpt-image direct] 参考图{i + 1}: {note}')
+                files.append(('image[]', (f'ref_{i}_{fname}', _BIO(payload_bytes), mime)))
+            logger.info(f'[gpt-image direct] POST {url}  参考图 {len(files)} 张 / '
+                        f'实际上传 {total_bytes / 1048576:.2f} MB  上传窗口={UPLOAD_WINDOW}s 读窗口={READ_WINDOW}s')
+            try:
+                data = {
+                    'model': model_name,
+                    'prompt': prompt,
+                    'n': '1',
+                    'size': size,
+                }
+                r = session.post(url, headers=headers, data=data, files=files,
+                                 timeout=sock_timeout, proxies=proxies)
+                logger.info(f'[gpt-image direct] /images/edits 收到响应，耗时 {time.time() - _t0:.1f}s')
+                return r
+            except Exception as e:
+                logger.warning(f'[gpt-image direct] /images/edits 失败于 {time.time() - _t0:.1f}s: {type(e).__name__}')
+                raise
+            finally:
+                for _, fobj in files:
+                    try:
+                        fobj[1].close()
+                    except Exception:
+                        pass
+        else:
+            url = f'{base}/images/generations'
+            payload = {
+                'model': model_name,
+                'prompt': prompt,
+                'n': 1,
+                'size': size,
+                'quality': quality,
+            }
+            hdrs = dict(headers)
+            hdrs['Content-Type'] = 'application/json'
+            logger.info(f'[gpt-image direct] POST {url}  无参考图  读窗口={READ_WINDOW}s')
+            try:
+                r = session.post(url, headers=hdrs, json=payload,
+                                 timeout=sock_timeout, proxies=proxies)
+                logger.info(f'[gpt-image direct] /images/generations 收到响应，耗时 {time.time() - _t0:.1f}s')
+                return r
+            except Exception as e:
+                logger.warning(f'[gpt-image direct] /images/generations 失败于 {time.time() - _t0:.1f}s: {type(e).__name__}')
+                raise
+
+    def _do_request_with_reprobe():
+        """先用缓存的网络配置；连接类失败时强制重新探测再试一次（网络可能已切换）
+
+        只重试"请求肯定没完整送达服务端"的失败：
+          - ProxyError / ConnectTimeout：连不上，服务端没收到
+          - ConnectionError（含 'Connection aborted, write operation timed out'）：
+            请求体只传了一部分，服务端会丢弃
+        绝不重试 ReadTimeout：那说明请求体已完整送达、服务端正在出图（已经计费），
+        重试等于再生成一张、再被扣一次费，而用户最多只能拿到一张。
+        """
+        proxies = get_requests_proxies()
         try:
-            resp = session.post(url, headers=headers, data=data, files=files, timeout=timeout, proxies=no_proxy)
-        finally:
-            for _, fobj in files:
-                try:
-                    fobj[1].close()
-                except Exception:
-                    pass
-    else:
-        url = f'{base}/images/generations'
-        payload = {
-            'model': model_name,
-            'prompt': prompt,
-            'n': 1,
-            'size': size,
-            'quality': quality,
-        }
-        headers['Content-Type'] = 'application/json'
-        resp = session.post(url, headers=headers, json=payload, timeout=timeout, proxies=no_proxy)
+            return _do_request(proxies)
+        except requests.exceptions.ReadTimeout:
+            raise
+        except (requests.exceptions.ProxyError,
+                requests.exceptions.ConnectionError) as e:
+            logger.warning(f'[gpt-image direct] 请求未送达（{type(e).__name__}），重新探测网络后重试...')
+            proxies = get_requests_proxies(force_refresh=True)
+            return _do_request(proxies)
+
+    # 总时长硬上限：仅在 socket 超时都没能结束请求时兜底，避免任务无限挂起
+    executor = ThreadPoolExecutor(max_workers=1)
+    try:
+        future = executor.submit(_do_request_with_reprobe)
+        try:
+            resp = future.result(timeout=hard_cap)
+        except _FutureTimeout:
+            future.cancel()
+            raise Exception(
+                f'gpt-image 生成超时：超过 {int(hard_cap)} 秒未返回结果。'
+                f'建议降低分辨率（如 2K）或减少参考图后重试。'
+            )
+    finally:
+        executor.shutdown(wait=False)
 
     logger.info(f'[gpt-image direct] response status={resp.status_code}')
 
@@ -895,14 +1026,56 @@ def _direct_call_gpt_image(prompt: str, model_name: str, api_key: str, api_base:
         body = resp.text[:2000]
         raise Exception(f'gpt-image API error {resp.status_code}: {body}')
 
-    result = resp.json()
+    # 解析响应：兼容 SSE 流式（text/event-stream）与普通 JSON
+    content_type = (resp.headers.get('Content-Type') or '').lower()
+    result = None
+
+    if 'event-stream' in content_type:
+        import json as _json_mod
+        merged_b64 = []
+        final_url = None
+        for raw_line in resp.iter_lines(decode_unicode=True):
+            if not raw_line:
+                continue
+            line = raw_line.strip()
+            if not line.startswith('data:'):
+                continue
+            chunk = line[5:].strip()
+            if not chunk or chunk == '[DONE]':
+                continue
+            try:
+                evt = _json_mod.loads(chunk)
+            except Exception:
+                continue
+            # 流式事件里图片可能以 b64_json / partial_image_b64 / url 形式出现
+            for key in ('b64_json', 'partial_image_b64', 'image_base64'):
+                if evt.get(key):
+                    merged_b64.append(evt[key])
+            if evt.get('url'):
+                final_url = evt['url']
+            for item_evt in (evt.get('data') or []):
+                if isinstance(item_evt, dict):
+                    if item_evt.get('b64_json'):
+                        merged_b64.append(item_evt['b64_json'])
+                    if item_evt.get('url'):
+                        final_url = item_evt['url']
+        # 流式结果：优先取最后一张完整图（多数实现最后一个事件为完整图）
+        if merged_b64:
+            result = {'data': [{'b64_json': merged_b64[-1]}]}
+        elif final_url:
+            result = {'data': [{'url': final_url}]}
+        else:
+            raise Exception('gpt-image 流式响应中未找到图片数据')
+    else:
+        result = resp.json()
+
     item = (result.get('data') or [{}])[0]
 
     if item.get('b64_json'):
         img_bytes = _b64.b64decode(item['b64_json'])
         return _PIL.open(_BIO(img_bytes)).convert('RGB')
     if item.get('url'):
-        r2 = requests.get(item['url'], timeout=120)
+        r2 = requests.get(item['url'], timeout=120, proxies=get_requests_proxies())
         r2.raise_for_status()
         return _PIL.open(_BIO(r2.content)).convert('RGB')
 
@@ -965,11 +1138,8 @@ def _generate_poster_with_model_task(
                 if not api_key:
                     raise Exception('No valid API key found for gpt-image (OPENAI_API_KEY / GOOGLE_API_KEY)')
 
-                from config import get_config
-                timeout = float(getattr(get_config(), 'OPENAI_TIMEOUT', 600.0) or 600.0)
-                # gpt-image-2 generation can take 5-10 minutes; enforce a minimum 600s
-                if timeout < 600.0:
-                    timeout = 600.0
+                # 总时长硬限制 5 分钟（用户要求）：超过即失败，避免任务无限挂起
+                timeout = 300.0
 
                 image = _direct_call_gpt_image(
                     prompt=prompt,
@@ -1024,6 +1194,20 @@ def _generate_poster_with_model_task(
             db.session.commit()
             logger.info(f'✅ Poster Task {task_id} COMPLETED - Material {material.id} generated via {model_name}')
             return material
+        except Exception as e:
+            # 必须捕获：否则异常逃出任务函数后 Task 行会永远停在 PENDING，
+            # 前端只能无限轮询、看不到任何错误信息
+            import traceback
+            from datetime import datetime as _dt
+            logger.error(f'Poster Task {task_id} FAILED: {traceback.format_exc()}')
+            db.session.rollback()
+            task = Task.query.get(task_id)
+            if task:
+                task.status = 'FAILED'
+                task.error_message = str(e)
+                task.completed_at = _dt.utcnow()
+                db.session.commit()
+            return None
         finally:
             # Clean up temp directory
             try:

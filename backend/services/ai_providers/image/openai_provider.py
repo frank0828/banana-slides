@@ -132,7 +132,8 @@ class OpenAIImageProvider(ImageProvider):
     ) -> Optional[Image.Image]:
         """Use client.images.generate() for DALL-E / gpt-image-2 style models."""
         size = self._aspect_ratio_to_size(aspect_ratio)
-        quality = 'high' if resolution in ('4K', '2K') else 'auto'
+        # quality 不用 'high'：实测 high 出图耗时 >60s，会撞上链路约 60s 空闲超时
+        quality = 'medium' if resolution in ('4K', '2K') else 'auto'
 
         logger.info(f'[ImageProvider] gpt-image API: aspect_ratio={aspect_ratio}, size={size}, quality={quality}')
 

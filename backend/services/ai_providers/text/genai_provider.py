@@ -44,12 +44,43 @@ class GenAITextProvider(TextProvider):
             # 未配置 api_base 时回退到 Google 官方接口
             self.chat_url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
 
-        self._client = httpx.Client(
+        self._client = self._create_client()
+        logger.info(f"[TextProvider] Using HTTP API: {self.chat_url}, model: {self.model}")
+
+    def _create_client(self, force_refresh: bool = False) -> httpx.Client:
+        """创建 httpx 客户端（自动探测直连/系统代理）"""
+        from utils.net_utils import get_ai_proxy
+        return httpx.Client(
             verify=False,
             trust_env=False,
+            proxy=get_ai_proxy(force_refresh=force_refresh),
             timeout=httpx.Timeout(60.0, connect=10.0),
         )
-        logger.info(f"[TextProvider] Using HTTP API: {self.chat_url}, model: {self.model}")
+
+    def _post_with_retry(self, payload: dict, headers: dict) -> httpx.Response:
+        """POST 请求；连接类错误时强制重新探测网络并重试（网络环境可能已切换）"""
+        last_exc = None
+        for attempt in range(2):
+            if attempt > 0:
+                logger.warning(f"[TextProvider] Retrying after error: {last_exc}")
+                try:
+                    self._client.close()
+                except Exception:
+                    pass
+                self._client = self._create_client(force_refresh=True)
+            try:
+                response = self._client.post(self.chat_url, json=payload, headers=headers)
+                response.raise_for_status()
+                return response
+            except Exception as e:
+                err_str = str(e)
+                if any(kw in err_str for kw in ('Timeout', 'Connection', 'Remote', 'Read', 'timed out')):
+                    last_exc = e
+                    if attempt == 1:
+                        raise
+                    continue
+                raise
+        raise Exception(f'Request failed: {last_exc}')
 
     def generate_text(self, prompt: str, thinking_budget: int = 0) -> str:
         """
@@ -72,8 +103,7 @@ class GenAITextProvider(TextProvider):
             "max_tokens": 4096,
         }
 
-        response = self._client.post(self.chat_url, json=payload, headers=headers)
-        response.raise_for_status()
+        response = self._post_with_retry(payload, headers)
         data = response.json()
         return data["choices"][0]["message"]["content"]
     
@@ -117,8 +147,7 @@ class GenAITextProvider(TextProvider):
             "max_tokens": 4096,
         }
 
-        response = self._client.post(self.chat_url, json=payload, headers=headers)
-        response.raise_for_status()
+        response = self._post_with_retry(payload, headers)
         data = response.json()
         return data["choices"][0]["message"]["content"]
 

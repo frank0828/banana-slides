@@ -156,7 +156,12 @@ export const MaterialGeneratorModal: React.FC<MaterialGeneratorModalProps> = ({
 
   const pollMaterialTask = async (taskId: string) => {
     const targetProjectId = projectId || 'global';
-    const maxAttempts = 90;  // 每2秒一次，最多等 3 分钟
+    // 轮询上限必须覆盖后端的等待预算，否则前端先放弃、用户看到"超时"，
+    // 而后端其实还在出图（且已计费）。后端 gpt-image 通路：上传窗口 180s +
+    // 读窗口 900s + 余量，硬上限约 1110s，这里留到 20 分钟。
+    const POLL_INTERVAL_MS = 2000;
+    const MAX_WAIT_MS = 20 * 60 * 1000;
+    const maxAttempts = Math.ceil(MAX_WAIT_MS / POLL_INTERVAL_MS);
     let attempts = 0;
 
     // 启动计时器
@@ -208,7 +213,7 @@ export const MaterialGeneratorModal: React.FC<MaterialGeneratorModalProps> = ({
           stopPolling();
         } else if (task.status === 'PENDING' || task.status === 'RUNNING' || task.status === 'PROCESSING') {
           if (attempts >= maxAttempts) {
-            show({ message: '素材生成超时（超过3分钟），请稍后查看素材库', type: 'info' });
+            show({ message: `素材生成超时（超过${Math.round(MAX_WAIT_MS / 60000)}分钟），后端可能仍在生成，请稍后查看素材库`, type: 'info' });
             setIsGenerating(false);
             stopPolling();
           }
