@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>image2 · GPT Image 2 / 2.5 出图</title>
+<style>
+  :root{
+    --bg:#0f1117; --card:#181c26; --card2:#1f2432; --line:#2b3142;
+    --txt:#e8ecf4; --muted:#9aa3b5; --accent:#6c8cff; --accent2:#8f6cff;
+    --ok:#3ddc84; --err:#ff5c6c; --warn:#ffb454;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI","Microsoft YaHei",-apple-system,sans-serif;
+       background:radial-gradient(1200px 600px at 20% -10%,#1b2140 0%,var(--bg) 55%);
+       color:var(--txt);min-height:100vh}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 80px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+  .logo{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+        background:linear-gradient(135deg,var(--accent),var(--accent2));font-weight:800;font-size:20px}
+  h1{font-size:22px;margin:0}
+  .sub{color:var(--muted);font-size:13px}
+  .grid{display:grid;grid-template-columns:400px 1fr;gap:20px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+  label{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px}
+  textarea,input[type=text],select{width:100%;background:var(--card2);border:1px solid var(--line);
+        color:var(--txt);border-radius:10px;padding:10px 12px;font-size:14px;outline:none}
+  textarea{min-height:110px;resize:vertical;font-family:inherit}
+  textarea:focus,input:focus,select:focus{border-color:var(--accent)}
+  .row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .dropzone{margin-top:6px;border:2px dashed var(--line);border-radius:12px;padding:16px;
+        text-align:center;color:var(--muted);cursor:pointer;transition:.15s}
+  .dropzone:hover,.dropzone.over{border-color:var(--accent);color:var(--txt)}
+  .chk{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--muted);
+       margin-top:10px;cursor:pointer;line-height:1.5}
+  .chk input{accent-color:var(--accent);margin-top:2px;flex:none}
+  #refPreviews{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .thumb{position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+  .thumb img{width:100%;height:100%;object-fit:cover}
+  .thumb .x{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;
+        background:rgba(0,0,0,.7);color:#fff;font-size:12px;line-height:18px;text-align:center;cursor:pointer}
+  button.gen{width:100%;margin-top:20px;padding:14px;border:none;border-radius:12px;
+        font-size:16px;font-weight:700;color:#fff;cursor:pointer;
+        background:linear-gradient(135deg,var(--accent),var(--accent2));transition:.15s}
+  button.gen:hover{filter:brightness(1.1)}
+  button.gen:disabled{opacity:.5;cursor:not-allowed}
+  .status{margin-top:16px;font-size:14px;display:none}
+  .status.show{display:block}
+  .pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px}
+  .pill.run{background:rgba(108,140,255,.18);color:var(--accent)}
+  .pill.ok{background:rgba(61,220,132,.16);color:var(--ok)}
+  .pill.err{background:rgba(255,92,108,.16);color:var(--err)}
+  .timer{color:var(--muted);margin-left:8px;font-variant-numeric:tabular-nums}
+  .hint{color:var(--muted);font-size:12px;margin-top:8px;line-height:1.5}
+  .result{display:none}
+  .result.show{display:block}
+  .result img{width:100%;border-radius:12px;border:1px solid var(--line);
+        background:repeating-conic-gradient(#242a38 0% 25%,#161b26 0% 50%) 0 0/22px 22px}
+  .result .meta{color:var(--muted);font-size:13px;margin-top:10px;display:flex;gap:16px;align-items:center}
+  .result a.dl{color:var(--accent);text-decoration:none;font-weight:600}
+  .errbox{color:var(--err);font-size:13px;margin-top:10px;white-space:pre-wrap;
+        background:rgba(255,92,108,.08);border:1px solid rgba(255,92,108,.3);
+        padding:10px 12px;border-radius:10px;display:none}
+  .errbox.show{display:block}
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+  .badge.ok{background:rgba(61,220,132,.16);color:var(--ok)}
+  .badge.warn{background:rgba(255,180,84,.16);color:var(--warn)}
+  .badge.err{background:rgba(255,92,108,.16);color:var(--err)}
+  .history-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  button.mini{background:var(--card2);border:1px solid var(--line);color:var(--txt);
+        border-radius:8px;padding:6px 12px;font-size:12.5px;cursor:pointer}
+  button.mini:hover{border-color:var(--accent)}
+  .history-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .hitem{display:flex;gap:12px;align-items:center;background:var(--card2);
+        border:1px solid var(--line);border-radius:12px;padding:10px;cursor:pointer;transition:.15s}
+  .hitem:hover{border-color:var(--accent)}
+  .hthumb{width:56px;height:56px;flex:none;border-radius:8px;overflow:hidden;border:1px solid var(--line);
+        background:repeating-conic-gradient(#242a38 0% 25%,#161b26 0% 50%) 0 0/14px 14px;
+        display:grid;place-items:center;color:var(--muted);font-size:11px;text-align:center}
+  .hthumb img{width:100%;height:100%;object-fit:cover}
+  .hbody{min-width:0;flex:1}
+  .hprompt{font-size:13px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .chip{font-size:11px;color:var(--muted);background:rgba(255,255,255,.04);
+        border:1px solid var(--line);border-radius:999px;padding:2px 8px;white-space:nowrap}
+  .chip.st-done{color:var(--ok);border-color:rgba(61,220,132,.35)}
+  .chip.st-error{color:var(--err);border-color:rgba(255,92,108,.35)}
+  .chip.st-run{color:var(--accent);border-color:rgba(108,140,255,.35)}
+  .hmeta{font-size:11px;color:var(--muted);flex:none;text-align:right;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">i2</div>
+    <div>
+      <h1>image2 出图台</h1>
+      <div class="sub">AiHubMix · GPT Image 2 / 2.5 · 异步任务模式（不受链路 60s 断连影响）· 参考图自动重编码不缩像素</div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- 左：参数 -->
+    <div class="card">
+      <label>提示词 Prompt *</label>
+      <textarea id="prompt" placeholder="描述你要生成的画面，例如：一只赛博朋克风格的猫，霓虹灯，电影感光影"></textarea>
+
+      <label>模型</label>
+      <select id="model"></select>
+      <div class="hint" id="modelHint">
+        gpt-image-2：稳定版；2.5-flare：快速·高质量日常生图；2.5-sunburst：高精度图片编辑。2.5 系列画质多出 xhigh/max（出图更慢，异步模式下不会断连，耐心等即可）。
+      </div>
+
+      <div class="row">
+        <div>
+          <label>比例</label>
+          <select id="ratio"></select>
+        </div>
+        <div>
+          <label>分辨率</label>
+          <select id="size"></select>
+        </div>
+        <div>
+          <label>画质</label>
+          <select id="quality"></select>
+        </div>
+      </div>
+      <div class="hint" id="qualityWarn" style="display:none;color:var(--warn)">
+        high/xhigh/max 出图慢（max 4K 实测约 76~120s）。现在走异步任务，不会再被 60s 断连掐掉，只是等待更久，请耐心等待状态变为「完成」。
+      </div>
+
+      <div class="row">
+        <div>
+          <label>背景</label>
+          <select id="background"></select>
+        </div>
+        <div>
+          <label>输出格式</label>
+          <select id="outFormat"></select>
+        </div>
+        <div></div>
+      </div>
+      <div class="hint" id="bgHint" style="display:none;color:var(--warn)">
+        透明背景为官方预览功能（不额外收费）：发送 background=transparent + output_format=png/webp，返回带真实 alpha 通道的图；棋盘格仅为预览底色，下载文件本身带透明通道。
+      </div>
+
+      <label>自定义像素（可选，覆盖比例+分辨率，如 2160x3840）</label>
+      <input type="text" id="pixelSize" placeholder="留空则用上面的比例+分辨率">
+
+      <label>参考图（可选，可多张；以 data URI 随异步任务提交，走图生图 / 多图融合）</label>
+      <div class="dropzone" id="dropzone">点击选择 或 拖拽图片到此处</div>
+      <input type="file" id="refInput" accept="image/*" multiple style="display:none">
+      <div id="refPreviews"></div>
+      
+            <label class="chk"><input type="checkbox" id="shrinkRefs">
+              <span>压缩超大参考图像素到 ≤2048：会改动输入像素（默认绝不压缩），仅多图反复失败时建议开；参考图走 base64 内联，体积膨胀 4/3，整个请求上限 32MiB</span></label>
+      
+      <button class="gen" id="genBtn">开始生成</button>
+
+      <div class="status" id="status">
+        <span class="pill run" id="statusPill">生成中</span>
+        <span class="timer" id="timer">0.0s</span>
+        <div class="hint" id="statusHint"></div>
+      </div>
+      <div class="errbox" id="errBox"></div>
+    </div>
+
+    <!-- 右：结果 -->
+    <div class="card">
+      <label style="margin-top:0">生成结果</label>
+      <div class="result" id="result">
+        <img id="resultImg" alt="生成结果">
+        <div class="meta">
+          <span id="resultMeta"></span>
+          <span id="alphaBadge"></span>
+          <a class="dl" id="resultDl" download>下载 PNG</a>
+        </div>
+      </div>
+      <div class="hint" id="emptyHint">
+        尚未生成。异步任务：medium 约 30~60 秒，max 4K 实测约 76 秒。任务进度已持久化：刷新页面、重启服务都能自动续接（产物保留 2 小时）。
+      </div>
+    </div>
+  </div>
+
+  <!-- 历史记录（整行）：保留每次的提示词与全部设置，点击即可回填复用 -->
+  <div class="card history" style="margin-top:20px">
+    <div class="history-head">
+      <label style="margin:0">历史记录</label>
+      <button class="mini" id="refreshHistory" type="button">刷新</button>
+    </div>
+    <div class="hint">点击任意一条，把当时的提示词与全部设置回填到左侧表单，方便复用或微调后重跑（参考图本身不保留，需重新上传）。</div>
+    <div id="historyList" class="history-list"></div>
+    <div class="hint" id="historyEmpty" style="display:none">暂无历史记录。</div>
+  </div>
+</div>
+
+<script>
+let refFiles = [];
+let pollTimer = null;
+let tickTimer = null;
+let MODELS = [];   // [{id,label,qualities,default_quality}]
+
+const $ = id => document.getElementById(id);
+
+// 初始化下拉
+fetch('/api/options').then(r=>r.json()).then(o=>{
+  MODELS = o.models || [];
+  const msel = $('model');
+  MODELS.forEach(m=>{
+    const op=document.createElement('option');
+    op.value=m.id; op.textContent=m.label;
+    msel.appendChild(op);
+  });
+  if(MODELS.length) msel.value = MODELS[0].id;   // 默认第一个（gpt-image-2）
+  fill('ratio', o.ratios, '16:9');
+  fill('size', o.sizes, '2K');
+  fillQuality();                                  // 画质随模型联动
+  fill('background', o.backgrounds, 'auto');
+  fill('outFormat', o.formats, 'png');
+  syncQualityWarn();
+  syncBgUI();
+  loadHistory();
+});
+function currentModelSpec(){
+  const id=$('model').value;
+  return MODELS.find(m=>m.id===id)
+      || {qualities:['auto','low','medium','high'], default_quality:'medium'};
+}
+function fillQuality(){
+  const spec=currentModelSpec();
+  const sel=$('quality'); sel.innerHTML='';
+  spec.qualities.forEach(q=>{
+    const op=document.createElement('option');
+    op.value=q; op.textContent=q;
+    if(q===spec.default_quality) op.selected=true;
+    sel.appendChild(op);
+  });
+  syncQualityWarn();
+}
+function syncQualityWarn(){
+  const w=$('qualityWarn');
+  if(w) w.style.display = ['high','xhigh','max'].includes($('quality').value) ? 'block' : 'none';
+}
+function syncBgUI(){
+  const transparent = $('background').value==='transparent';
+  const fmt = $('outFormat');
+  [...fmt.options].forEach(op=>{ op.disabled = transparent && op.value==='jpeg'; });
+  if(transparent && fmt.value==='jpeg') fmt.value='png';  // jpeg 无 alpha，官方禁止与 transparent 同用
+  $('bgHint').style.display = transparent ? 'block' : 'none';
+}
+function fill(id, list, def){
+  const sel = $(id);
+  list.forEach(v=>{
+    const op = document.createElement('option');
+    op.value = v; op.textContent = v;
+    if(v===def) op.selected = true;
+    sel.appendChild(op);
+  });
+}
+
+// 参考图上传
+$('dropzone').addEventListener('click', ()=>$('refInput').click());
+$('refInput').addEventListener('change', e=>addFiles(e.target.files));
+['dragover','dragleave','drop'].forEach(ev=>{
+  $('dropzone').addEventListener(ev, e=>{
+    e.preventDefault();
+    if(ev==='dragover') $('dropzone').classList.add('over');
+    else $('dropzone').classList.remove('over');
+    if(ev==='drop') addFiles(e.dataTransfer.files);
+  });
+});
+function addFiles(fileList){
+  for(const f of fileList){
+    if(f.type.startsWith('image/')) refFiles.push(f);
+  }
+  renderThumbs();
+}
+function renderThumbs(){
+  const box = $('refPreviews'); box.innerHTML='';
+  refFiles.forEach((f,i)=>{
+    const div=document.createElement('div'); div.className='thumb';
+    const img=document.createElement('img');
+    img.src=URL.createObjectURL(f);
+    const x=document.createElement('div'); x.className='x'; x.textContent='×';
+    x.onclick=()=>{refFiles.splice(i,1);renderThumbs();};
+    div.appendChild(img); div.appendChild(x); box.appendChild(div);
+  });
+}
+
+// 模型/画质/背景切换时同步联动
+$('model').addEventListener('change', fillQuality);   // 换模型 → 重填该模型支持的画质档位
+$('quality').addEventListener('change', syncQualityWarn);
+$('background').addEventListener('change', syncBgUI);
+$('refreshHistory').addEventListener('click', loadHistory);
+
+// 提交 + 轮询（任务进度已持久化：刷新/重启后可自动续接）
+const LS_KEY = 'i2_last_task';
+let pollFails = 0;          // 连续轮询失败次数（本地服务断连用，不中断轮询）
+
+$('genBtn').addEventListener('click', ()=>{
+  const prompt = $('prompt').value.trim();
+  if(!prompt){ alert('请填写提示词'); return; }
+
+  const fd = new FormData();
+  fd.append('prompt', prompt);
+  fd.append('model', $('model').value);
+  fd.append('ratio', $('ratio').value);
+  fd.append('size', $('size').value);
+  fd.append('quality', $('quality').value);
+  fd.append('pixel_size', $('pixelSize').value.trim());
+  fd.append('background', $('background').value);
+  fd.append('output_format', $('outFormat').value);
+  if($('shrinkRefs').checked) fd.append('shrink_refs','1');
+  refFiles.forEach(f=>fd.append('ref_images', f));
+
+  beginRun();
+  setStatus('run','提交中', '正在创建异步任务…');
+
+  fetch('/api/generate',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(d.error){ fail(d.error); return; }
+    try{ localStorage.setItem(LS_KEY, JSON.stringify({id:d.task_id, ts:Date.now()})); }catch(e){}
+    startTick();
+    poll(d.task_id);
+    loadHistory();          // 新任务立即出现在历史记录
+  }).catch(e=>fail('提交失败：'+e));
+});
+
+function beginRun(){
+  $('genBtn').disabled = true;
+  $('result').classList.remove('show');
+  $('errBox').classList.remove('show');
+  $('emptyHint').style.display='none';
+  $('status').classList.add('show');
+  pollFails = 0;
+}
+
+// 供应商任务状态 -> 人话
+const VENDOR_HINT = {
+  '':            '异步任务已提交，等待上游受理…',
+  pending:       '上游排队中（pending）…',
+  in_progress:   '上游生成中（in_progress），max 4K 实测约 76~120s，请耐心等待…',
+  resumed:       '服务已重启，正凭供应商任务 ID 继续跟踪…',
+  poll_error:    '查询上游状态临时失败，下一轮自动重试（不影响已受理的任务）…',
+};
+
+function poll(taskId){
+  clearInterval(pollTimer);
+  pollTimer = setInterval(()=>{
+    fetch('/api/task/'+taskId).then(r=>{
+      if(r.status===404){
+        // 本地任务记录丢失：继续轮询没有意义，直接报错停止
+        stopTimers();
+        fail('任务不存在（本地任务记录丢失）。若刚刚重启过服务，产物可能仍在上游：用同一把 Key 查 GET /ai/v1/tasks 列表找回任务 ID（产物保留 2 小时）。');
+        throw null;   // 中断后续 then
+      }
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    }).then(t=>{
+      if(!t) return;
+      pollFails = 0;
+      if(t.status==='done'){
+        stopTimers();
+        setStatus('ok','完成', t.vendor_task_id ? ('供应商任务 '+t.vendor_task_id) : '');
+        showResult(t);
+        $('genBtn').disabled=false;
+        loadHistory();      // 刷新历史：状态/缩略图更新为完成
+      } else if(t.status==='error'){
+        stopTimers();
+        fail(t.error + (t.vendor_task_id ? ('\n供应商任务 ID：'+t.vendor_task_id+'（产物保留 2 小时，可凭 ID 查 GET /ai/v1/tasks/'+t.vendor_task_id+'/content 恢复下载）') : ''));
+        loadHistory();      // 刷新历史：标记为失败
+      } else {
+        // pending / creating / submitted / running：继续等，展示供应商状态
+        const hint = VENDOR_HINT[t.vendor_status!==undefined ? t.vendor_status : ''] || '';
+        setStatus('run','生成中', hint + (t.vendor_task_id ? (' 任务 '+t.vendor_task_id) : ''));
+      }
+    }).catch(e=>{
+      if(e===null) return;   // 404 已处理
+      // 本地服务断连（重启/网络抖动）：任务进度已持久化，服务恢复后接着查即可，不中断轮询
+      pollFails++;
+      if(pollFails>=5){
+        setStatus('run','等待服务恢复', '与本地服务断开连接，持续重试中…（任务进度已持久化，服务恢复/重启后会自动续接，不会重复计费）');
+      }
+    });
+  }, 2000);
+}
+
+function showResult(t){
+  const url = '/output/'+t.filename;
+  $('resultImg').src = url;
+  $('resultDl').href = url;
+  $('resultDl').textContent = '下载 ' + t.filename.split('.').pop().toUpperCase();
+  $('resultMeta').textContent = `${t.img_size} · ${t.elapsed}s`;
+  renderAlphaBadge(t);
+  $('result').classList.add('show');
+}
+
+// 把「透明背景是否真的生效」直接显示出来：依据后端对产物 alpha 通道的检测
+function renderAlphaBadge(t){
+  const el = $('alphaBadge');
+  if(!el) return;
+  // 旧任务记录没有 alpha 检测字段：不下结论，留空
+  if(t.has_alpha === undefined || t.has_alpha === null){ el.textContent=''; el.className=''; return; }
+  const wantedTransparent = ((t.params||{}).background === 'transparent');
+  // 既没请求透明、产物也没 alpha：无需提示
+  if(!wantedTransparent && !t.has_alpha){ el.textContent=''; el.className=''; return; }
+  if(t.transparent_ok){
+    el.className='badge ok';
+    el.textContent='✓ 真透明：带 alpha 通道且含透明像素';
+  } else if(t.has_alpha){
+    el.className='badge warn';
+    el.textContent='⚠ 有 alpha 通道但全不透明（未真正抠出背景）';
+  } else {
+    el.className='badge err';
+    el.textContent='✗ 无 alpha 通道：网关可能未透传 background（透明背景未生效）';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 历史记录：展示每次生成的提示词与设置，点击一键回填表单复用
+// ---------------------------------------------------------------------------
+function loadHistory(){
+  fetch('/api/history').then(r=>r.json()).then(d=>{
+    const items = d.items || [];
+    const box = $('historyList'); box.innerHTML='';
+    $('historyEmpty').style.display = items.length ? 'none' : 'block';
+    items.forEach(it=>box.appendChild(renderHistoryItem(it)));
+  }).catch(()=>{});
+}
+function renderHistoryItem(it){
+  const p = it.params || {};
+  const div = document.createElement('div'); div.className='hitem';
+  div.title='点击把这条记录的提示词与设置回填到左侧表单';
+
+  const th = document.createElement('div'); th.className='hthumb';
+  if(it.status==='done' && it.filename){
+    const img=document.createElement('img'); img.src='/output/'+it.filename; img.alt='';
+    th.appendChild(img);
+  } else {
+    th.textContent = it.status==='error' ? '失败' : '进行中';
+  }
+
+  const body=document.createElement('div'); body.className='hbody';
+  const pr=document.createElement('div'); pr.className='hprompt';
+  pr.textContent = p.prompt || '(无提示词)';
+  const chips=document.createElement('div'); chips.className='hchips';
+  const st = it.status==='done' ? ['st-done','完成']
+           : it.status==='error' ? ['st-error','失败']
+           : ['st-run','进行中'];
+  chips.appendChild(mkChip(st[1], st[0]));
+  if(p.model) chips.appendChild(mkChip(shortModel(p.model)));
+  const sizeText = p.pixel_size || [p.ratio,p.size_tier].filter(Boolean).join('·');
+  if(sizeText) chips.appendChild(mkChip(sizeText));
+  if(p.quality) chips.appendChild(mkChip('画质 '+p.quality));
+  if(p.background && p.background!=='auto') chips.appendChild(mkChip('背景 '+p.background));
+  if(p.output_format) chips.appendChild(mkChip(p.output_format));
+  if(p.ref_count) chips.appendChild(mkChip('参考图×'+p.ref_count));
+  body.appendChild(pr); body.appendChild(chips);
+
+  const meta=document.createElement('div'); meta.className='hmeta';
+  meta.textContent = fmtTime(it.created);
+
+  div.appendChild(th); div.appendChild(body); div.appendChild(meta);
+  div.onclick = ()=>applyHistory(p);
+  return div;
+}
+function mkChip(text, cls){
+  const s=document.createElement('span');
+  s.className='chip'+(cls?(' '+cls):'');
+  s.textContent=text; return s;
+}
+function shortModel(m){ return (m||'').replace('gpt-image-','gi-'); }
+function fmtTime(ts){
+  if(!ts) return '';
+  const d=new Date(ts*1000), pad=n=>String(n).padStart(2,'0');
+  return `${d.getMonth()+1}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+// 把历史记录的提示词与设置回填到表单（参考图不保留，需重新上传）
+function applyHistory(p){
+  if(!p) return;
+  $('prompt').value = p.prompt || '';
+  setIfOption('model', p.model);
+  fillQuality();                        // 先按模型重建画质档位，再选中目标画质
+  setIfOption('ratio', p.ratio);
+  setIfOption('size', p.size_tier);
+  setIfOption('quality', p.quality);
+  $('pixelSize').value = p.pixel_size || '';
+  setIfOption('background', p.background || 'auto');
+  setIfOption('outFormat', p.output_format || 'png');
+  syncQualityWarn(); syncBgUI();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function setIfOption(id, val){
+  const sel=$(id); if(!sel || !val) return;
+  if([...sel.options].some(o=>o.value===val)) sel.value=val;
+}
+
+// 刷新页面后自动续接上次任务（未完成的接着轮询，已完成的直接展示结果）
+(function restoreLast(){
+  let saved = null;
+  try{ saved = JSON.parse(localStorage.getItem(LS_KEY)||'null'); }catch(e){}
+  if(!saved || !saved.id) return;
+  if(Date.now()-(saved.ts||0) > 24*3600*1000) return;   // 超过 24h 的陈年任务不自动恢复 UI
+  fetch('/api/task/'+saved.id).then(r=> r.ok ? r.json() : null).then(t=>{
+    if(!t) return;
+    if(t.status==='done'){
+      $('status').classList.add('show');
+      setStatus('ok','完成（上次会话的任务）','');
+      showResult(t);
+      $('emptyHint').style.display='none';
+    } else if(['pending','creating','submitted','running'].includes(t.status)){
+      beginRun();
+      setStatus('run','生成中','页面刷新后自动续接上次任务…');
+      startTick();
+      poll(saved.id);
+    }
+    // error 状态不自动弹出：避免刷新页面就看到上次的旧报错
+  }).catch(()=>{});
+})();
+
+let t0=0;
+function startTick(){
+  t0 = Date.now();
+  clearInterval(tickTimer);
+  tickTimer = setInterval(()=>{
+    $('timer').textContent = ((Date.now()-t0)/1000).toFixed(1)+'s';
+  },100);
+}
+function stopTimers(){ clearInterval(pollTimer); clearInterval(tickTimer); }
+
+function setStatus(kind,text,hint){
+  const pill=$('statusPill');
+  pill.className='pill '+kind;
+  pill.textContent=text;
+  $('statusHint').textContent=hint||'';
+}
+function fail(msg){
+  stopTimers();
+  setStatus('err','失败','');
+  $('errBox').textContent=msg;
+  $('errBox').classList.add('show');
+  $('genBtn').disabled=false;
+}
+</script>
+</body>
+</html>

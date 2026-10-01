@@ -1,0 +1,7 @@
+# image2 运行产物不入库：
+# - web_outputs/：生成图(PNG)、二进制 .body、.jpg、任务/验证日志等运行时输出
+# - out_*.png：CLI 单次出图产物
+# - __pycache__/：字节码
+web_outputs/
+out_*.png
+__pycache__/
